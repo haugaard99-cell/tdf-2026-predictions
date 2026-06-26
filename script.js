@@ -50,14 +50,13 @@ const stages = [
     { num: 21, date: "Sun 26 Jul", from: "Versailles", to: "Paris (Champs)", km: 125, type: "flat", icon: "🏆", desc: "Champs-Élysées finale" }
 ];
 
-// 🔒 LOCK DATE: July 4, 2026 at 12:00 CET (10:00 UTC)
 const LOCK_DATE = new Date('2026-07-04T10:00:00Z');
 const isLocked = () => new Date() >= LOCK_DATE;
 
 let db = null;
 let firebaseReady = false;
 let currentLeague = 'all';
-let currentEditingId = null; // ID of prediction being edited (null = new)
+let currentEditingId = null;
 
 async function initFirebase() {
     let tries = 0;
@@ -207,7 +206,6 @@ function setupLoadButton() {
         if (!match) { alert('❌ No prediction found with that name + PIN combo. Check spelling!'); return; }
         if (isLocked()) { alert('🔒 Predictions are locked. You can view but not edit.'); }
         
-        // Load the prediction into the form
         document.getElementById('legoEmployee').checked = match.legoEmployee || false;
         document.getElementById('yellowJersey').value = match.yellowJersey || '';
         document.getElementById('greenJersey').value = match.greenJersey || '';
@@ -225,7 +223,8 @@ function setupLoadButton() {
             const el = document.getElementById(`stagePred${num}`);
             if (el) el.value = rider;
         });
-        currentEditingId = match.id;
+        currentEditingId = match.id; // 🔑 This is the Firestore doc ID
+        console.log('Editing prediction with ID:', currentEditingId);
         document.getElementById('submitBtn').textContent = '💾 Update My Prediction';
         alert(`✅ Loaded prediction for ${match.playerName}. Make changes and click "Update".`);
     });
@@ -268,12 +267,23 @@ function setupForm() {
         if (!/^\d{1,2}:[0-5]\d$/.test(prediction.timeGap)) { alert('Time gap must be MM:SS format (e.g. 12:45)'); return; }
 
         try {
-            const { collection, addDoc, doc, setDoc } = window.firebaseSDK;
+            const { collection, addDoc, doc, setDoc, getDoc } = window.firebaseSDK;
+            
             if (currentEditingId) {
-                await setDoc(doc(db, 'predictions', currentEditingId), prediction);
-                alert('✅ Prediction updated!');
+                console.log('Updating existing prediction:', currentEditingId);
+                // Verify the doc still exists before updating
+                const docRef = doc(db, 'predictions', currentEditingId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    console.warn('Doc not found, creating new instead');
+                    await addDoc(collection(db, 'predictions'), prediction);
+                    alert('⚠️ Original prediction not found, created new one.');
+                } else {
+                    prediction.lastUpdated = new Date().toISOString();
+                    await setDoc(docRef, prediction);
+                    alert('✅ Prediction updated!');
+                }
             } else {
-                // Check for duplicate name+pin
                 const existing = await getPredictions();
                 const dup = existing.find(p => p.playerName.toLowerCase() === prediction.playerName.toLowerCase() && p.pin === prediction.pin);
                 if (dup) {
@@ -281,13 +291,15 @@ function setupForm() {
                     return;
                 }
                 await addDoc(collection(db, 'predictions'), prediction);
+                alert('✅ Prediction submitted!');
             }
+            
             showSuccess();
             e.target.reset();
             currentEditingId = null;
             document.getElementById('submitBtn').textContent = 'Submit Predictions 🚴‍♂️';
         } catch (err) {
-            console.error(err);
+            console.error('Submit error:', err);
             alert('Error: ' + err.message);
         }
     });
@@ -319,7 +331,6 @@ function showSuccess() {
     setTimeout(() => msg.classList.add('hidden'), 4000);
 }
 
-// ============ SCORING ============
 function timeGapToSeconds(str) {
     if (!str || !/^\d{1,2}:[0-5]\d$/.test(str)) return null;
     const [m, s] = str.split(':').map(Number);
@@ -363,7 +374,6 @@ async function renderLeaderboard() {
     const allPredictions = await getPredictions();
     const results = await getResults();
     
-    // Filter by league
     let predictions = allPredictions;
     if (currentLeague === 'lego') predictions = allPredictions.filter(p => p.legoEmployee);
     
@@ -377,7 +387,6 @@ async function renderLeaderboard() {
         p.tieBreakerDiff = calcTieBreakerDiff(p, results);
     });
     
-    // Sort: score DESC, then tieBreakerDiff ASC
     const sorted = [...predictions].sort((a,b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.tieBreakerDiff - b.tieBreakerDiff;
