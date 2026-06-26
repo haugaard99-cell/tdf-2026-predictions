@@ -27,27 +27,27 @@ const countries = [
 ];
 
 const stages = [
-    { num: 1, date: "Sat 4 Jul", from: "Barcelona", to: "Barcelona", km: 19, type: "itt", icon: "⏱️", desc: "Opening time trial" },
-    { num: 2, date: "Sun 5 Jul", from: "Tarragona", to: "Barcelona", km: 178, type: "hilly", icon: "⛰️", desc: "Punchy finish on Montjuïc" },
-    { num: 3, date: "Mon 6 Jul", from: "Granollers", to: "Andorra la Vella", km: 195, type: "mountain", icon: "🏔️", desc: "First Pyrenees test" },
-    { num: 4, date: "Tue 7 Jul", from: "Andorra", to: "Foix", km: 165, type: "mountain", icon: "🏔️", desc: "Second Pyrenean stage" },
-    { num: 5, date: "Wed 8 Jul", from: "Pamiers", to: "Toulouse", km: 175, type: "flat", icon: "🏁", desc: "Sprinters' day" },
-    { num: 6, date: "Thu 9 Jul", from: "Toulouse", to: "Carcassonne", km: 188, type: "flat", icon: "🏁", desc: "Bunch sprint likely" },
-    { num: 7, date: "Fri 10 Jul", from: "Béziers", to: "Montpellier", km: 172, type: "flat", icon: "🏁", desc: "Coastal sprint stage" },
-    { num: 8, date: "Sat 11 Jul", from: "Nîmes", to: "Mont Ventoux", km: 198, type: "mountain", icon: "🏔️", desc: "Iconic Mont Ventoux finish" },
-    { num: 9, date: "Sun 12 Jul", from: "Avignon", to: "Gap", km: 184, type: "hilly", icon: "⛰️", desc: "Transitional hilly stage" },
-    { num: 10, date: "Mon 13 Jul", from: "REST DAY", to: "Grenoble", km: 0, type: "rest", icon: "😴", desc: "First rest day" },
-    { num: 11, date: "Tue 14 Jul", from: "Grenoble", to: "Alpe d'Huez", km: 152, type: "mountain", icon: "🏔️", desc: "Bastille Day on Alpe d'Huez" },
-    { num: 12, date: "Wed 15 Jul", from: "Bourg d'Oisans", to: "Courchevel", km: 175, type: "mountain", icon: "🏔️", desc: "Queen stage in the Alps" },
-    { num: 13, date: "Thu 16 Jul", from: "Albertville", to: "Saint-Étienne", km: 195, type: "hilly", icon: "⛰️", desc: "Breakaway opportunity" },
-    { num: 14, date: "Fri 17 Jul", from: "Saint-Étienne", to: "Clermont-Ferrand", km: 38, type: "itt", icon: "⏱️", desc: "GC time trial" },
-    { num: 15, date: "Sat 18 Jul", from: "Clermont", to: "Le Lioran", km: 168, type: "mountain", icon: "🏔️", desc: "Massif Central climbs" },
-    { num: 16, date: "Sun 19 Jul", from: "Aurillac", to: "Limoges", km: 182, type: "flat", icon: "🏁", desc: "Sprint opportunity" },
-    { num: 17, date: "Mon 20 Jul", from: "REST DAY", to: "Bordeaux", km: 0, type: "rest", icon: "😴", desc: "Second rest day" },
-    { num: 18, date: "Tue 21 Jul", from: "Bordeaux", to: "Pau", km: 188, type: "flat", icon: "🏁", desc: "Final sprint before Pyrenees" },
-    { num: 19, date: "Wed 22 Jul", from: "Pau", to: "Hautacam", km: 165, type: "mountain", icon: "🏔️", desc: "Hautacam summit finish" },
-    { num: 20, date: "Thu 23 Jul", from: "Tarbes", to: "Col du Tourmalet", km: 158, type: "mountain", icon: "🏔️", desc: "Final mountain showdown" },
-    { num: 21, date: "Sun 26 Jul", from: "Versailles", to: "Paris (Champs)", km: 125, type: "flat", icon: "🏆", desc: "Champs-Élysées finale" }
+    { num: 1, date: "Sat 07/04/2026", from: "Barcelone", to: "Barcelone", km: 19.6, type: "itt", icon: "⏱️", desc: "Team Time-Trial" },
+    { num: 2, date: "Sun 07/05/2026", from: "Tarragone", to: "Barcelone", km: 168.5, type: "hilly", icon: "⛰️", desc: "Hilly Stage" },
+    { num: 3, date: "Mon 07/06/2026", from: "Granollers", to: "Les Angles", km: 195.9, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 4, date: "Tue 07/07/2026", from: "Carcassonne", to: "Foix", km: 181.9, type: "hilly", icon: "⛰️", desc: "Hilly Stage" },
+    { num: 5, date: "Wed 07/08/2026", from: "Lannemezan", to: "Pau", km: 158.3, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 6, date: "Thu 07/09/2026", from: "Pau", to: "Gavarnie-Gèdre", km: 186.2, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 7, date: "Fri 07/10/2026", from: "Hagetmau", to: "Bordeaux", km: 175.1, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 8, date: "Sat 07/11/2026", from: "Périgueux", to: "Bergerac", km: 180.4, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 9, date: "Sun 07/12/2026", from: "Malemort", to: "Ussel", km: 185.5, type: "hilly", icon: "⛰️", desc: "Hilly Stage" },
+    { num: 10, date: "Tue 07/14/2026", from: "Aurillac", to: "Le Lioran", km: 166.6, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 11, date: "Wed 07/15/2026", from: "Vichy", to: "Nevers", km: 161.3, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 12, date: "Thu 07/16/2026", from: "Circuit Nevers Magny-Cours", to: "Chalon-sur-Saône", km: 179.1, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 13, date: "Fri 07/17/2026", from: "Dole", to: "Belfort", km: 205.8, type: "hilly", icon: "⛰️", desc: "Hilly Stage" },
+    { num: 14, date: "Sat 07/18/2026", from: "Mulhouse", to: "Le Markstein Fellering", km: 155.3, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 15, date: "Sun 07/19/2026", from: "Champagnole", to: "Plateau de Solaison", km: 183.9, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 16, date: "Tue 07/21/2026", from: "Évian-les-Bains", to: "Thonon-les-Bains", km: 26.1, type: "itt", icon: "⏱️", desc: "Individual time-trial" },
+    { num: 17, date: "Wed 07/22/2026", from: "Chambery", to: "Voiron", km: 174.7, type: "flat", icon: "🏁", desc: "Flat Stage" },
+    { num: 18, date: "Thu 07/23/2026", from: "Voiron", to: "Orcières-Merlette", km: 185.2, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 19, date: "Fri 07/24/2026", from: "Gap", to: "Alpe d'Huez", km: 127.9, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 20, date: "Sat 07/25/2026", from: "Le Bourg d'Oisans", to: "Alpe d'Huez", km: 170.9, type: "mountain", icon: "🏔️", desc: "Mountain Stage" },
+    { num: 21, date: "Sun 07/26/2026", from: "Thoiry", to: "Paris Champs-Élysées", km: 133, type: "flat", icon: "🏆", desc: "Flat Stage" }
 ];
 
 const LOCK_DATE = new Date('2026-07-04T10:00:00Z');
