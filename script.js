@@ -744,7 +744,7 @@ async function renderSummary() {
     const jerseyPredictions = { yellow: {}, green: {}, polka: {}, white: {} };
     
     predictions.forEach(p => {
-        Object.entries(p.stagePredictions).forEach(([stageNum, rider]) => {
+        Object.entries(p.stagePredictions || {}).forEach(([stageNum, rider]) => {
             stagePredictions[stageNum] = stagePredictions[stageNum] || {};
             stagePredictions[stageNum][rider] = (stagePredictions[stageNum][rider] || 0) + 1;
         });
@@ -755,12 +755,12 @@ async function renderSummary() {
 
     const mostPredictedStages = Object.entries(stagePredictions).map(([stageNum, riders]) => {
         const mostPredictedRider = Object.entries(riders).sort((a, b) => b[1] - a[1])[0];
-        return `Stage ${stageNum}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)`;
+        return mostPredictedRider ? `Stage ${stageNum}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)` : `Stage ${stageNum}: No predictions`;
     }).join('<br>');
 
     const mostPredictedJerseys = Object.entries(jerseyPredictions).map(([jersey, riders]) => {
         const mostPredictedRider = Object.entries(riders).sort((a, b) => b[1] - a[1])[0];
-        return `${jersey.charAt(0).toUpperCase() + jersey.slice(1)}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)`;
+        return mostPredictedRider ? `${jersey.charAt(0).toUpperCase() + jersey.slice(1)}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)` : `${jersey.charAt(0).toUpperCase() + jersey.slice(1)}: No predictions`;
     }).join('<br>');
 
     summaryContent.innerHTML = `
