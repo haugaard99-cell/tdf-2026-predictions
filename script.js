@@ -102,7 +102,7 @@ function checkLockStatus() {
 function setupRealtimeUpdates() {
     if (!firebaseReady) return;
     const { collection, onSnapshot, doc } = window.firebaseSDK;
-    onSnapshot(collection(db, 'predictions'), () => { renderLeaderboard(); renderPredictionsList(); });
+    onSnapshot(collection(db, 'predictions'), () => { renderLeaderboard(); renderPredictionsList(); renderStages(); });
     onSnapshot(doc(db, 'results', 'current'), () => { renderStages(); renderLeaderboard(); renderPredictionsList(); });
 }
 
@@ -138,10 +138,22 @@ function buildStagePredictions() {
         </div>`).join('');
 }
 
+// 🆕 PHASE 2: Stages tab now shows daily winners
 async function renderStages() {
     const results = await getResults();
+    const predictions = firebaseReady ? await getPredictions() : [];
+    
     document.getElementById('stagesList').innerHTML = stages.map(s => {
         const winner = results.stageWinners && results.stageWinners[s.num];
+        
+        // Find who predicted this stage correctly
+        let correctPredictors = [];
+        if (winner && s.type !== 'rest') {
+            correctPredictors = predictions
+                .filter(p => p.stagePredictions && p.stagePredictions[s.num] === winner)
+                .map(p => ({ name: p.playerName, lego: p.legoEmployee }));
+        }
+        
         return `
         <div class="stage-card ${s.type}">
             <div class="stage-number">${s.type === 'rest' ? '💤' : s.num}</div>
@@ -154,6 +166,15 @@ async function renderStages() {
                 </div>
                 <div class="stage-meta" style="margin-top:6px;">${s.desc}</div>
                 ${winner ? `<div class="stage-winner-display">🏆 Winner: <strong>${escapeHtml(winner)}</strong></div>` : ''}
+                ${winner && correctPredictors.length > 0 ? `
+                    <div class="daily-winners">
+                        ✅ <strong>${correctPredictors.length} correct prediction${correctPredictors.length !== 1 ? 's' : ''}:</strong>
+                        ${correctPredictors.map(p => `<span class="winner-tag">${escapeHtml(p.name)}${p.lego ? ' 🧱' : ''}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${winner && correctPredictors.length === 0 ? `
+                    <div class="daily-winners" style="color:#999;">😅 Nobody predicted this one correctly!</div>
+                ` : ''}
             </div>
             <div class="stage-icon">${s.icon}</div>
         </div>`;
@@ -223,7 +244,7 @@ function setupLoadButton() {
             const el = document.getElementById(`stagePred${num}`);
             if (el) el.value = rider;
         });
-        currentEditingId = match.id; // 🔑 This is the Firestore doc ID
+        currentEditingId = match.id;
         console.log('Editing prediction with ID:', currentEditingId);
         document.getElementById('submitBtn').textContent = '💾 Update My Prediction';
         alert(`✅ Loaded prediction for ${match.playerName}. Make changes and click "Update".`);
@@ -270,12 +291,9 @@ function setupForm() {
             const { collection, addDoc, doc, setDoc, getDoc } = window.firebaseSDK;
             
             if (currentEditingId) {
-                console.log('Updating existing prediction:', currentEditingId);
-                // Verify the doc still exists before updating
                 const docRef = doc(db, 'predictions', currentEditingId);
                 const docSnap = await getDoc(docRef);
                 if (!docSnap.exists()) {
-                    console.warn('Doc not found, creating new instead');
                     await addDoc(collection(db, 'predictions'), prediction);
                     alert('⚠️ Original prediction not found, created new one.');
                 } else {
@@ -337,28 +355,108 @@ function timeGapToSeconds(str) {
     return m * 60 + s;
 }
 
-function calculateScore(prediction, results) {
+// 🆕 PHASE 2: Return both score AND detailed breakdown
+function calculateScoreWithBreakdown(prediction, results) {
+    const breakdown = [];
     let score = 0;
+    
+    // Stage wins
     if (results.stageWinners) {
         Object.entries(results.stageWinners).forEach(([stageNum, winner]) => {
-            if (winner && prediction.stagePredictions && prediction.stagePredictions[stageNum] === winner) score += 10;
+            if (winner && prediction.stagePredictions && prediction.stagePredictions[stageNum] === winner) {
+                score += 10;
+                breakdown.push({ label: `🏁 Stage ${stageNum}: ${winner.split(' (')[0]}`, points: 10, correct: true });
+            } else if (winner && prediction.stagePredictions && prediction.stagePredictions[stageNum]) {
+                breakdown.push({ label: `❌ Stage ${stageNum}: predicted ${prediction.stagePredictions[stageNum].split(' (')[0]}, actual ${winner.split(' (')[0]}`, points: 0, correct: false });
+            }
         });
     }
-    if (results.yellowJersey && prediction.yellowJersey === results.yellowJersey) score += 25;
-    if (results.greenJersey && prediction.greenJersey === results.greenJersey) score += 15;
-    if (results.polkaJersey && prediction.polkaJersey === results.polkaJersey) score += 15;
-    if (results.whiteJersey && prediction.whiteJersey === results.whiteJersey) score += 15;
+    
+    // Jerseys
+    if (results.yellowJersey) {
+        if (prediction.yellowJersey === results.yellowJersey) {
+            score += 25;
+            breakdown.push({ label: `🟡 Yellow Jersey: ${results.yellowJersey.split(' (')[0]}`, points: 25, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Yellow Jersey: predicted ${prediction.yellowJersey?.split(' (')[0] || 'none'}, actual ${results.yellowJersey.split(' (')[0]}`, points: 0, correct: false });
+        }
+    }
+    if (results.greenJersey) {
+        if (prediction.greenJersey === results.greenJersey) {
+            score += 15; breakdown.push({ label: `🟢 Green Jersey: ${results.greenJersey.split(' (')[0]}`, points: 15, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Green Jersey: predicted ${prediction.greenJersey?.split(' (')[0] || 'none'}, actual ${results.greenJersey.split(' (')[0]}`, points: 0, correct: false });
+        }
+    }
+    if (results.polkaJersey) {
+        if (prediction.polkaJersey === results.polkaJersey) {
+            score += 15; breakdown.push({ label: `🔴 Polka Dot Jersey: ${results.polkaJersey.split(' (')[0]}`, points: 15, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Polka Dot: predicted ${prediction.polkaJersey?.split(' (')[0] || 'none'}, actual ${results.polkaJersey.split(' (')[0]}`, points: 0, correct: false });
+        }
+    }
+    if (results.whiteJersey) {
+        if (prediction.whiteJersey === results.whiteJersey) {
+            score += 15; breakdown.push({ label: `⚪ White Jersey: ${results.whiteJersey.split(' (')[0]}`, points: 15, correct: true });
+        } else {
+            breakdown.push({ label: `❌ White Jersey: predicted ${prediction.whiteJersey?.split(' (')[0] || 'none'}, actual ${results.whiteJersey.split(' (')[0]}`, points: 0, correct: false });
+        }
+    }
+    
+    // Podium
     const actualPodium = [results.podium1, results.podium2, results.podium3].filter(Boolean);
     const predictedPodium = [prediction.podium1, prediction.podium2, prediction.podium3];
+    const podiumLabels = ['🥇 1st', '🥈 2nd', '🥉 3rd'];
     predictedPodium.forEach((p, i) => {
-        if (actualPodium[i] && p === actualPodium[i]) score += 20;
-        else if (p && actualPodium.includes(p)) score += 10;
+        if (!actualPodium[i]) return;
+        if (p === actualPodium[i]) {
+            score += 20;
+            breakdown.push({ label: `${podiumLabels[i]} place: ${p.split(' (')[0]} (exact!)`, points: 20, correct: true });
+        } else if (p && actualPodium.includes(p)) {
+            score += 10;
+            breakdown.push({ label: `${podiumLabels[i]} place: ${p.split(' (')[0]} (in top 3, wrong pos)`, points: 10, correct: true });
+        } else if (p) {
+            breakdown.push({ label: `❌ ${podiumLabels[i]}: predicted ${p.split(' (')[0]}, actual ${actualPodium[i].split(' (')[0]}`, points: 0, correct: false });
+        }
     });
-    if (results.team && prediction.winningTeam === results.team) score += 15;
-    if (results.stageWins && parseInt(prediction.stageWins) === parseInt(results.stageWins)) score += 10;
-    if (results.topCountry && prediction.topCountry === results.topCountry) score += 10;
-    if (results.dnfCount !== undefined && results.dnfCount !== '' && Math.abs(parseInt(prediction.dnfCount) - parseInt(results.dnfCount)) <= 3) score += 10;
-    return score;
+    
+    // Bonuses
+    if (results.team) {
+        if (prediction.winningTeam === results.team) {
+            score += 15; breakdown.push({ label: `🏢 Winning team: ${results.team}`, points: 15, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Team: predicted ${prediction.winningTeam || 'none'}, actual ${results.team}`, points: 0, correct: false });
+        }
+    }
+    if (results.stageWins) {
+        if (parseInt(prediction.stageWins) === parseInt(results.stageWins)) {
+            score += 10; breakdown.push({ label: `🔢 Most stage wins: ${results.stageWins} (exact!)`, points: 10, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Most stage wins: predicted ${prediction.stageWins}, actual ${results.stageWins}`, points: 0, correct: false });
+        }
+    }
+    if (results.topCountry) {
+        if (prediction.topCountry === results.topCountry) {
+            score += 10; breakdown.push({ label: `🌍 Top country: ${results.topCountry}`, points: 10, correct: true });
+        } else {
+            breakdown.push({ label: `❌ Top country: predicted ${prediction.topCountry || 'none'}, actual ${results.topCountry}`, points: 0, correct: false });
+        }
+    }
+    if (results.dnfCount !== undefined && results.dnfCount !== '') {
+        const diff = Math.abs(parseInt(prediction.dnfCount) - parseInt(results.dnfCount));
+        if (diff <= 3) {
+            score += 10;
+            breakdown.push({ label: `🚑 DNF count: predicted ${prediction.dnfCount}, actual ${results.dnfCount} (±${diff})`, points: 10, correct: true });
+        } else {
+            breakdown.push({ label: `❌ DNF count: predicted ${prediction.dnfCount}, actual ${results.dnfCount} (off by ${diff})`, points: 0, correct: false });
+        }
+    }
+    
+    return { score, breakdown };
+}
+
+function calculateScore(prediction, results) {
+    return calculateScoreWithBreakdown(prediction, results).score;
 }
 
 function calcTieBreakerDiff(prediction, results) {
@@ -366,6 +464,23 @@ function calcTieBreakerDiff(prediction, results) {
     const predicted = timeGapToSeconds(prediction.timeGap);
     if (actual === null || predicted === null) return Infinity;
     return Math.abs(actual - predicted);
+}
+
+// 🆕 PHASE 2: Stage win counts mini-leaderboard
+function getStageWinCounts(predictions, results) {
+    if (!results.stageWinners) return [];
+    const counts = {};
+    predictions.forEach(p => {
+        counts[p.id] = { name: p.playerName, lego: p.legoEmployee, correctStages: 0 };
+    });
+    Object.entries(results.stageWinners).forEach(([stageNum, winner]) => {
+        predictions.forEach(p => {
+            if (p.stagePredictions && p.stagePredictions[stageNum] === winner) {
+                counts[p.id].correctStages++;
+            }
+        });
+    });
+    return Object.values(counts).filter(c => c.correctStages > 0).sort((a,b) => b.correctStages - a.correctStages);
 }
 
 async function renderLeaderboard() {
@@ -383,7 +498,9 @@ async function renderLeaderboard() {
     }
     
     predictions.forEach(p => {
-        p.score = calculateScore(p, results);
+        const result = calculateScoreWithBreakdown(p, results);
+        p.score = result.score;
+        p.breakdown = result.breakdown;
         p.tieBreakerDiff = calcTieBreakerDiff(p, results);
     });
     
@@ -397,16 +514,63 @@ async function renderLeaderboard() {
         const tbInfo = results.timeGap && p.tieBreakerDiff !== Infinity 
             ? `Tie-breaker: predicted ${p.timeGap} (±${p.tieBreakerDiff}s)` 
             : `Tie-breaker: ${p.timeGap || 'not set'}`;
+        const breakdownHtml = p.breakdown.length === 0 
+            ? '<p style="color:#999;font-style:italic;padding:10px;">No results entered yet — breakdown will appear after admin enters results.</p>'
+            : p.breakdown.map(b => `
+                <div class="breakdown-row ${b.correct ? 'correct' : 'incorrect'}">
+                    <span>${escapeHtml(b.label)}</span>
+                    <span class="bp-pts">${b.points > 0 ? '+' + b.points : '0'}</span>
+                </div>`).join('');
+        
         return `
-            <div class="leaderboard-item">
-                <div class="rank ${rc}">#${i+1}</div>
-                <div class="player-info">
-                    <div class="player-name">${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''}</div>
-                    <div class="player-score">${p.score} points</div>
-                    <div class="player-tiebreaker">${tbInfo}</div>
+            <details class="leaderboard-item-wrapper">
+                <summary class="leaderboard-item">
+                    <div class="rank ${rc}">#${i+1}</div>
+                    <div class="player-info">
+                        <div class="player-name">${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''}</div>
+                        <div class="player-score">${p.score} points</div>
+                        <div class="player-tiebreaker">${tbInfo}</div>
+                    </div>
+                    <div class="expand-arrow">▼</div>
+                </summary>
+                <div class="score-breakdown">
+                    <h4>📊 Score Breakdown</h4>
+                    ${breakdownHtml}
                 </div>
-            </div>`;
+            </details>`;
     }).join('');
+    
+    // 🆕 Stage win counts mini-leaderboard
+    const stageCounts = getStageWinCounts(predictions, results);
+    let stageCountsHtml = '';
+    if (stageCounts.length > 0) {
+        stageCountsHtml = `
+            <div class="card" style="margin-top:20px;">
+                <h2>🏁 Stage Prediction Masters</h2>
+                <p class="card-desc">Players who correctly predicted the most stage winners</p>
+                ${stageCounts.slice(0, 10).map((c, i) => {
+                    let rc = ''; if (i===0) rc='gold'; else if (i===1) rc='silver'; else if (i===2) rc='bronze';
+                    return `
+                        <div class="leaderboard-item">
+                            <div class="rank ${rc}">#${i+1}</div>
+                            <div class="player-info">
+                                <div class="player-name">${escapeHtml(c.name)}${c.lego ? '<span class="lego-badge">LEGO</span>' : ''}</div>
+                                <div class="player-score">🏁 ${c.correctStages} correct stage${c.correctStages !== 1 ? 's' : ''}</div>
+                            </div>
+                        </div>`;
+                }).join('')}
+            </div>`;
+    }
+    
+    // Insert stage counts after leaderboard
+    const existing = document.getElementById('stagePredictionMasters');
+    if (existing) existing.remove();
+    if (stageCountsHtml) {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'stagePredictionMasters';
+        wrapper.innerHTML = stageCountsHtml;
+        list.parentElement.parentElement.insertBefore(wrapper, list.parentElement.nextSibling);
+    }
 }
 
 async function renderPredictionsList() {
@@ -549,4 +713,3 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
