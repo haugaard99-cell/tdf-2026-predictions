@@ -135,3 +135,115 @@ footer p { font-size: 0.9rem; }
     .stage-icon { display: none; }
     .stage-number { font-size: 1.8rem; }
 }
+/* ============ PHASE 2 STYLES ============ */
+
+/* Daily winners on Stages tab */
+.daily-winners {
+    background: #f0fff5;
+    border-top: 1px dashed var(--green);
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    grid-column: 1 / -1;
+    border-radius: 6px;
+}
+
+.winner-tag {
+    display: inline-block;
+    background: var(--green);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin: 4px 4px 0 0;
+}
+
+/* Expandable leaderboard items */
+.leaderboard-item-wrapper {
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.leaderboard-item-wrapper:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-item-wrapper summary {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    gap: 16px;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.2s;
+}
+
+.leaderboard-item-wrapper summary::-webkit-details-marker {
+    display: none;
+}
+
+.leaderboard-item-wrapper summary:hover {
+    background: #fafafa;
+}
+
+.expand-arrow {
+    color: var(--gray);
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.leaderboard-item-wrapper[open] .expand-arrow {
+    transform: rotate(180deg);
+}
+
+/* Score breakdown panel */
+.score-breakdown {
+    background: #fafafa;
+    padding: 16px 20px;
+    border-top: 2px dashed #ddd;
+}
+
+.score-breakdown h4 {
+    margin-bottom: 12px;
+    font-size: 1rem;
+    color: var(--dark);
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    gap: 10px;
+}
+
+.breakdown-row.correct {
+    background: #f0fff5;
+    border-left: 3px solid var(--green);
+}
+
+.breakdown-row.incorrect {
+    background: #fff5f5;
+    border-left: 3px solid #E03A3E;
+    color: #666;
+}
+
+.breakdown-row .bp-pts {
+    font-weight: 700;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--dark);
+    min-width: 40px;
+    text-align: right;
+}
+
+.breakdown-row.correct .bp-pts {
+    color: var(--green);
+}
+
+.breakdown-row.incorrect .bp-pts {
+    color: #999;
+}
