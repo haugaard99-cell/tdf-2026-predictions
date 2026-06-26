@@ -1,23 +1,37 @@
 // ============ DATA ============
 const riders = [
-    "Tadej Pogačar (UAE Team Emirates)","Jonas Vingegaard (Visma-Lease a Bike)","Remco Evenepoel (Soudal Quick-Step)",
-    "Primož Roglič (Red Bull-BORA-hansgrohe)","Mathieu van der Poel (Alpecin-Deceuninck)","Wout van Aert (Visma-Lease a Bike)",
-    "Jasper Philipsen (Alpecin-Deceuninck)","Biniam Girmay (Intermarché-Wanty)","Mads Pedersen (Lidl-Trek)",
-    "Carlos Rodríguez (INEOS Grenadiers)","Juan Ayuso (UAE Team Emirates)","João Almeida (UAE Team Emirates)",
-    "Adam Yates (UAE Team Emirates)","Enric Mas (Movistar)","Richard Carapaz (EF Education-EasyPost)",
-    "Egan Bernal (INEOS Grenadiers)","Matteo Jorgenson (Visma-Lease a Bike)","Sepp Kuss (Visma-Lease a Bike)",
-    "Tom Pidcock (Q36.5 Pro Cycling)","Julian Alaphilippe (Tudor Pro Cycling)","Romain Bardet (Picnic PostNL)",
-    "David Gaudu (Groupama-FDJ)","Tobias Halland Johannessen (Uno-X)","Florian Lipowitz (Red Bull-BORA-hansgrohe)",
-    "Isaac del Toro (UAE Team Emirates)","Arnaud De Lie (Lotto)","Olav Kooij (Visma-Lease a Bike)",
-    "Tim Merlier (Soudal Quick-Step)","Dylan Groenewegen (Jayco AlUla)","Fabio Jakobsen (Picnic PostNL)"
+    "PHILIPSEN Jasper", "GROVES Kaden", "VAN DER POEL Mathieu", "VERSTRYNGE Emiel", "RICKAERT Jonas",
+    "TIBERI Antonio", "MARTINEZ Lenny", "MOHORIČ Matej",
+    "KOOIJ Olav", "BENOOT Tiesj", "HOOLE Daan", "BISSEGGER Stefan", "SEIXAS Paul",
+    "HEALY Ben", "ASGREEN Kasper", "CARAPAZ Richard", "BAUDIN Alex",
+    "GAUDU David", "MARTIN Guillaume",
+    "GANNA Filippo", "RODRÍGUEZ Carlos", "KWIATKOWSKI Michał", "VAUQUELIN Kévin", "GODON Dorian", "ARENSMAN Thymen",
+    "CICCONE Giulio", "AYUSO Juan", "PEDERSEN Mads", "VACEK Mathias", "SKJELMOSE Mattias", "SIMMONS Quinn", "KRAGH ANDERSEN Søren",
+    "DE LIE Arnaud", "VAN EETVELT Lennert", "ZIMMERMANN Georg",
+    "UIJTDEBROEKS Cian", "RUBIO Einer", "CASTRILLO Pablo", "ADRIÀ Roger",
+    "GIRMAY Biniam", "STEWART Jake", "ASKEY Lewis", "NEILANDS Krists", "FRIGO Marco", "LOUVEL Matis", "BENNETT George", "VAN ASBROECK Tom",
+    "EVENEPOEL Remco", "DENZ Nico", "LIPOWITZ Florian", "CATTANEO Mattia", "TRATNIK Jan", "VAN GILS Maxim", "HINDLEY Jai", "VAN DIJKE Mick",
+    "PARET-PEINTRE Valentin", "LANDA Mikel", "MERLIER Tim", "STUYVEN Jasper", "VAN WILDER Ilan", "VERVAEKE Louis", "VAN BAARLE Dylan", "VAN LERBERGHE Bert",
+    "MATTHEWS Michael", "PLAPP Luke", "ACKERMANN Pascal", "O'CONNOR Ben", "SCHMID Mauro", "O'BRIEN Kelland", "ENGELHARDT Felix", "DURBRIDGE Luke",
+    "BITTNER Pavel", "BARGUIL Warren", "VAN DEN BROEK Frank",
+    "CAMPENAERTS Victor", "AFFINI Edoardo", "HAGENES Per Strand", "JORGENSON Matteo", "KUSS Sepp", "ARMIRAIL Bruno", "PIGANZOLI Davide", "VINGEGAARD Jonas",
+    "POGAČAR Tadej", "DEL TORO Isaac", "WELLENS Tim", "MCNULTY Brandon", "YATES Adam", "VERMEERSCH Florian", "POLITT Nils",
+    "KRON Andreas", "CORT Magnus", "JOHANNESSEN Tobias Halland", "SKAARSETH Anders", "WÆRENSKJOLD Søren", "CHARMIG Anthon", "ABRAHAMSEN Jonas", "TRÆEN Torstein",
+    "TEUNISSEN Mike", "HIGUITA Sergio", "TEJADA Harold", "FORTUNATO Lorenzo", "KANTER Max",
+    "KIRSCH Alex", "FRETIN Milan", "BUCHMANN Emanuel", "PAGE Hugo", "ARANBURU Alex", "IZAGIRRE Ion", "ALLEGAERT Piet", "BIERMANS Jenthe", "THOMAS Benjamin",
+    "ALAPHILIPPE Julian", "STORER Michael", "TRENTIN Matteo", "PLUIMERS Rick",
+    "JEGAT Jordan",
+    "MOLENAAR Alex", "NICOLAU Joel",
+    "PIDCOCK Tom", "WRIGHT Fred", "HERMANS Quinten"
 ];
 
 const teams = [
-    "UAE Team Emirates","Visma-Lease a Bike","Soudal Quick-Step","Red Bull-BORA-hansgrohe",
-    "INEOS Grenadiers","Alpecin-Deceuninck","Lidl-Trek","Movistar","EF Education-EasyPost",
-    "Groupama-FDJ","Bahrain Victorious","Jayco AlUla","Intermarché-Wanty","Cofidis",
-    "Decathlon AG2R","Israel-Premier Tech","Tudor Pro Cycling","Q36.5 Pro Cycling",
-    "Lotto","Picnic PostNL","Uno-X","Arkéa-B&B Hotels"
+    "Alpecin - Premier Tech", "Bahrain - Victorious", "Decathlon CMA CGM Team", "EF Education - EasyPost",
+    "Groupama - FDJ United", "Netcompany INEOS", "Lidl - Trek", "Lotto Intermarché", "Movistar Team",
+    "NSN Cycling Team", "Red Bull - BORA - hansgrohe", "Soudal Quick-Step", "Team Jayco AlUla",
+    "Team Picnic PostNL", "Team Visma | Lease a Bike", "UAE Team Emirates - XRG", "Uno-X Mobility",
+    "XDS Astana Team", "Cofidis", "Tudor Pro Cycling Team", "TotalEnergies", "Caja Rural - Seguros RGA",
+    "Pinarello Q36.5 Pro Cycling Team"
 ];
 
 const countries = [
