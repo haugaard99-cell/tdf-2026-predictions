@@ -1,3 +1,6 @@
+css
+
+copy to clipboard
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
@@ -55,13 +58,11 @@ main { padding: 20px 0 40px; }
 .success-message { background: var(--green); color: white; padding: 16px; border-radius: 8px; text-align: center; margin-top: 20px; font-weight: 700; }
 .hidden { display: none; }
 
-/* LEAGUE TABS */
 .league-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .league-tab { padding: 10px 18px; border: 2px solid #e0e0e0; background: white; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
 .league-tab:hover { background: var(--light-gray); }
 .league-tab.active { background: var(--dark); color: var(--yellow); border-color: var(--dark); }
 
-/* LEGO BADGE */
 .lego-badge { display: inline-block; background: var(--lego-red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-left: 6px; letter-spacing: 0.5px; }
 
 .leaderboard-item { display: flex; align-items: center; padding: 14px; border-bottom: 1px solid var(--light-gray); gap: 16px; }
