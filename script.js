@@ -146,7 +146,6 @@ async function renderStages() {
     document.getElementById('stagesList').innerHTML = stages.map(s => {
         const winner = results.stageWinners && results.stageWinners[s.num];
         
-        // Find who predicted this stage correctly
         let correctPredictors = [];
         if (winner && s.type !== 'rest') {
             correctPredictors = predictions
@@ -540,7 +539,6 @@ async function renderLeaderboard() {
             </details>`;
     }).join('');
     
-    // 🆕 Stage win counts mini-leaderboard
     const stageCounts = getStageWinCounts(predictions, results);
     let stageCountsHtml = '';
     if (stageCounts.length > 0) {
@@ -562,7 +560,6 @@ async function renderLeaderboard() {
             </div>`;
     }
     
-    // Insert stage counts after leaderboard
     const existing = document.getElementById('stagePredictionMasters');
     if (existing) existing.remove();
     if (stageCountsHtml) {
@@ -713,3 +710,4 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
