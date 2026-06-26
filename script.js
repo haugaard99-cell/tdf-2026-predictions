@@ -489,10 +489,14 @@ async function renderLeaderboard() {
     const results = await getResults();
     
     let predictions = allPredictions;
-    if (currentLeague === 'lego') predictions = allPredictions.filter(p => p.legoEmployee);
+    if (currentLeague === 'lego') {
+        predictions = allPredictions.filter(p => p.legoEmployee);
+    } else {
+        predictions = allPredictions.filter(p => !p.legoEmployee); // Exclude LEGO employees
+    }
     
     if (predictions.length === 0) {
-        list.innerHTML = `<p class="empty-state">No predictions in ${currentLeague === 'lego' ? 'LEGO' : 'All'} league yet.</p>`;
+        list.innerHTML = `<p class="empty-state">No predictions in ${currentLeague === 'lego' ? 'LEGO' : 'Expert'} league yet.</p>`;
         return;
     }
     
