@@ -25,6 +25,7 @@
         <button class="tab-btn active" data-tab="predict">Predict</button>
         <button class="tab-btn" data-tab="stages">Stages</button>
         <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab-btn" data-tab="summary">Summary</button> <!-- New tab -->
         <button class="tab-btn" data-tab="admin">Admin</button>
         <button class="tab-btn" data-tab="rules">Rules</button>
     </nav>
@@ -162,6 +163,16 @@
                 <div class="card">
                     <h2>📋 All Predictions</h2>
                     <div id="predictionsList"><p class="empty-state">No predictions yet.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>🔍 Prediction Summary</h2>
+                    <p class="card-desc">Overview of all predictions</p>
+                    <div id="summaryContent"><p class="empty-state">Loading...</p></div>
                 </div>
             </div>
         </section>
