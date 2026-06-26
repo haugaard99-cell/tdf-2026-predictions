@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFD700">
+    <title>Tour de France 2026 - Prediction Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+      import { 
+        getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, onSnapshot
+      } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+      window.firebaseSDK = { initializeApp, getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc, onSnapshot };
+    </script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🚴 Tour de France 2026</h1>
+            <p class="subtitle">Prediction Game</p>
+        </div>
+    </header>
+
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="predict">Predict</button>
+        <button class="tab-btn" data-tab="stages">Stages</button>
+        <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab-btn" data-tab="admin">Admin</button>
+        <button class="tab-btn" data-tab="rules">Rules</button>
+    </nav>
+
+    <main>
+        <section id="predict" class="tab-content active">
+            <div class="container">
+                <div class="info-banner"><span>📅 Race starts: July 4, 2026 - Barcelona</span></div>
+                <form id="predictionForm">
+                    <div class="card">
+                        <h2>👤 Your Details</h2>
+                        <div class="form-group">
+                            <label for="playerName">Your Name</label>
+                            <input type="text" id="playerName" required placeholder="Enter your name">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🏆 Jersey Winners</h2>
+                        <p class="card-desc">Predict the winners of each classification</p>
+                        <div class="form-group jersey yellow">
+                            <label for="yellowJersey"><span class="jersey-icon">🟡</span> Yellow Jersey (GC)</label>
+                            <select id="yellowJersey" required><option value="">Select a rider...</option></select>
+                        </div>
+                        <div class="form-group jersey green">
+                            <label for="greenJersey"><span class="jersey-icon">🟢</span> Green Jersey (Points)</label>
+                            <select id="greenJersey" required><option value="">Select a rider...</option></select>
+                        </div>
+                        <div class="form-group jersey polka">
+                            <label for="polkaJersey"><span class="jersey-icon">🔴</span> Polka Dot Jersey (KOM)</label>
+                            <select id="polkaJersey" required><option value="">Select a rider...</option></select>
+                        </div>
+                        <div class="form-group jersey white">
+                            <label for="whiteJersey"><span class="jersey-icon">⚪</span> White Jersey (Young)</label>
+                            <select id="whiteJersey" required><option value="">Select a rider...</option></select>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🥇 GC Podium</h2>
+                        <p class="card-desc">Predict the final top 3</p>
+                        <div class="podium-grid">
+                            <div class="form-group"><label for="podium1">🥇 1st</label><select id="podium1" required><option value="">Select...</option></select></div>
+                            <div class="form-group"><label for="podium2">🥈 2nd</label><select id="podium2" required><option value="">Select...</option></select></div>
+                            <div class="form-group"><label for="podium3">🥉 3rd</label><select id="podium3" required><option value="">Select...</option></select></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🏁 Stage Winners</h2>
+                        <p class="card-desc">Predict the winner of all 21 stages (10 points each)</p>
+                        <div id="stagePredictions"></div>
+                    </div>
+                    <div class="card">
+                        <h2>🎯 Bonus Predictions</h2>
+                        <div class="form-group">
+                            <label for="stageWins">Most Stage Wins by a single rider</label>
+                            <input type="number" id="stageWins" min="1" max="21" required placeholder="1-21">
+                        </div>
+                        <div class="form-group">
+                            <label for="winningTeam">Winning Team</label>
+                            <select id="winningTeam" required><option value="">Select a team...</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dnfCount">Number of DNFs</label>
+                            <input type="number" id="dnfCount" min="0" max="184" required placeholder="0-184">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Submit Predictions 🚴‍♂️</button>
+                </form>
+                <div id="successMessage" class="success-message hidden">✅ Predictions submitted successfully!</div>
+            </div>
+        </section>
+
+        <section id="stages" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>🗺️ Route Overview</h2>
+                    <p class="card-desc">21 stages • 3 weeks • ~3,400 km</p>
+                    <div class="route-stats">
+                        <div class="stat"><div class="stat-num" id="flatCount">0</div><div class="stat-label">Flat</div></div>
+                        <div class="stat"><div class="stat-num" id="hillyCount">0</div><div class="stat-label">Hilly</div></div>
+                        <div class="stat"><div class="stat-num" id="mountainCount">0</div><div class="stat-label">Mountain</div></div>
+                        <div class="stat"><div class="stat-num" id="ittCount">0</div><div class="stat-label">ITT</div></div>
+                    </div>
+                </div>
+                <div id="stagesList"></div>
+            </div>
+        </section>
+
+        <section id="leaderboard" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>🏅 Leaderboard</h2>
+                    <p class="card-desc">Live rankings updated as results come in</p>
+                    <div id="leaderboardList"><p class="empty-state">Connecting...</p></div>
+                </div>
+                <div class="card">
+                    <h2>📋 All Predictions</h2>
+                    <div id="predictionsList"><p class="empty-state">No predictions yet.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>🔧 Admin: Enter Results</h2>
+                    <p class="card-desc">PIN protected. Auto-fetch or enter manually.</p>
+                    <div id="adminLock">
+                        <div class="form-group">
+                            <label for="adminPin">Enter Admin PIN</label>
+                            <input type="password" id="adminPin" placeholder="PIN">
+                        </div>
+                        <button id="unlockAdmin" class="submit-btn">Unlock</button>
+                    </div>
+                    <div id="adminPanel" class="hidden">
+                        <div style="background:#fffdf0;border:2px solid #FFD700;padding:16px;border-radius:8px;margin-bottom:20px;">
+                            <h3 style="margin-top:0;">🤖 Auto-Fetch from Wikipedia</h3>
+                            <p style="font-size:0.9rem;color:#666;margin-bottom:12px;">Pulls stage winners from Wikipedia automatically.</p>
+                            <button id="fetchAllStages" type="button" class="submit-btn" style="margin-bottom:8px;">🔄 Fetch All Stage Results</button>
+                            <div id="fetchStatus" style="font-size:0.85rem;color:#666;"></div>
+                        </div>
+                        <h3 style="margin-top:20px;">🏁 Stage Winners</h3>
+                        <div id="adminStageResults"></div>
+                        <h3 style="margin-top:20px;">🏆 Jersey Winners</h3>
+                        <div class="form-group"><label>🟡 Yellow</label><select id="resultYellow"><option value="">--</option></select></div>
+                        <div class="form-group"><label>🟢 Green</label><select id="resultGreen"><option value="">--</option></select></div>
+                        <div class="form-group"><label>🔴 Polka Dot</label><select id="resultPolka"><option value="">--</option></select></div>
+                        <div class="form-group"><label>⚪ White</label><select id="resultWhite"><option value="">--</option></select></div>
+                        <h3 style="margin-top:20px;">🥇 GC Podium</h3>
+                        <div class="podium-grid">
+                            <div class="form-group"><label>1st</label><select id="resultPodium1"><option value="">--</option></select></div>
+                            <div class="form-group"><label>2nd</label><select id="resultPodium2"><option value="">--</option></select></div>
+                            <div class="form-group"><label>3rd</label><select id="resultPodium3"><option value="">--</option></select></div>
+                        </div>
+                        <h3 style="margin-top:20px;">🎯 Bonus</h3>
+                        <div class="form-group"><label>Most stage wins (number)</label><input type="number" id="resultStageWins" min="0" max="21"></div>
+                        <div class="form-group"><label>Winning team</label><select id="resultTeam"><option value="">--</option></select></div>
+                        <div class="form-group"><label>DNF count</label><input type="number" id="resultDnfCount" min="0" max="184"></div>
+                        <button id="saveResults" class="submit-btn">💾 Save & Recalculate Scores</button>
+                        <button id="resetAll" class="submit-btn" style="background:#E03A3E;color:white;margin-top:10px;">🗑️ Reset All Data</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="rules" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>📖 How to Play</h2>
+                    <ol class="rules-list">
+                        <li>Enter your predictions before <strong>July 4, 2026</strong></li>
+                        <li>Predict jersey winners, podium, all 21 stage winners + bonuses</li>
+                        <li>Results auto-fetched from Wikipedia or entered by admin</li>
+                        <li>Scores update automatically and sync to everyone</li>
+                    </ol>
+                </div>
+                <div class="card">
+                    <h2>🎯 Scoring System</h2>
+                    <ul class="scoring-list">
+                        <li><strong>Each Stage Winner:</strong> 10 points</li>
+                        <li><strong>Yellow Jersey:</strong> 25 points</li>
+                        <li><strong>Green / Polka Dot / White Jersey:</strong> 15 points each</li>
+                        <li><strong>GC Podium (exact position):</strong> 20 points each</li>
+                        <li><strong>GC Podium (in top 3 wrong place):</strong> 10 points</li>
+                        <li><strong>Winning Team:</strong> 15 points</li>
+                        <li><strong>Most Stage Wins (exact):</strong> 10 points</li>
+                        <li><strong>DNF count (within 3):</strong> 10 points</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer><p>🚴 Tour de France 2026 Prediction Game | Allez Allez Allez!</p></footer>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
