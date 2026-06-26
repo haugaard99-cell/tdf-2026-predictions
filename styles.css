@@ -1,406 +1,543 @@
-css
+// ============ DATA ============
+const riders = [
+    "Tadej Pogačar (UAE Team Emirates)","Jonas Vingegaard (Visma-Lease a Bike)","Remco Evenepoel (Soudal Quick-Step)",
+    "Primož Roglič (Red Bull-BORA-hansgrohe)","Mathieu van der Poel (Alpecin-Deceuninck)","Wout van Aert (Visma-Lease a Bike)",
+    "Jasper Philipsen (Alpecin-Deceuninck)","Biniam Girmay (Intermarché-Wanty)","Mads Pedersen (Lidl-Trek)",
+    "Carlos Rodríguez (INEOS Grenadiers)","Juan Ayuso (UAE Team Emirates)","João Almeida (UAE Team Emirates)",
+    "Adam Yates (UAE Team Emirates)","Enric Mas (Movistar)","Richard Carapaz (EF Education-EasyPost)",
+    "Egan Bernal (INEOS Grenadiers)","Matteo Jorgenson (Visma-Lease a Bike)","Sepp Kuss (Visma-Lease a Bike)",
+    "Tom Pidcock (Q36.5 Pro Cycling)","Julian Alaphilippe (Tudor Pro Cycling)","Romain Bardet (Picnic PostNL)",
+    "David Gaudu (Groupama-FDJ)","Tobias Halland Johannessen (Uno-X)","Florian Lipowitz (Red Bull-BORA-hansgrohe)",
+    "Isaac del Toro (UAE Team Emirates)","Arnaud De Lie (Lotto)","Olav Kooij (Visma-Lease a Bike)",
+    "Tim Merlier (Soudal Quick-Step)","Dylan Groenewegen (Jayco AlUla)","Fabio Jakobsen (Picnic PostNL)"
+];
 
-copy to clipboard
-* { margin: 0; padding: 0; box-sizing: border-box; }
+const teams = [
+    "UAE Team Emirates","Visma-Lease a Bike","Soudal Quick-Step","Red Bull-BORA-hansgrohe",
+    "INEOS Grenadiers","Alpecin-Deceuninck","Lidl-Trek","Movistar","EF Education-EasyPost",
+    "Groupama-FDJ","Bahrain Victorious","Jayco AlUla","Intermarché-Wanty","Cofidis",
+    "Decathlon AG2R","Israel-Premier Tech","Tudor Pro Cycling","Q36.5 Pro Cycling",
+    "Lotto","Picnic PostNL","Uno-X","Arkéa-B&B Hotels"
+];
 
-:root {
-    --yellow: #FFD700;
-    --green: #00A651;
-    --polka: #E03A3E;
-    --white-jersey: #f5f5f5;
-    --dark: #1a1a1a;
-    --gray: #666;
-    --light-gray: #f0f0f0;
-    --bg: #fafafa;
-    --shadow: 0 2px 8px rgba(0,0,0,0.08);
-    --shadow-hover: 0 4px 16px rgba(0,0,0,0.12);
+const countries = [
+    "🇧🇪 Belgium","🇫🇷 France","🇸🇮 Slovenia","🇩🇰 Denmark","🇳🇱 Netherlands","🇪🇸 Spain","🇮🇹 Italy",
+    "🇬🇧 United Kingdom","🇩🇪 Germany","🇨🇭 Switzerland","🇦🇺 Australia","🇨🇴 Colombia","🇪🇨 Ecuador",
+    "🇺🇸 USA","🇳🇴 Norway","🇪🇷 Eritrea","🇵🇹 Portugal","🇦🇹 Austria","🇮🇪 Ireland","🇨🇦 Canada","🇵🇱 Poland"
+];
+
+const stages = [
+    { num: 1, date: "Sat 4 Jul", from: "Barcelona", to: "Barcelona", km: 19, type: "itt", icon: "⏱️", desc: "Opening time trial" },
+    { num: 2, date: "Sun 5 Jul", from: "Tarragona", to: "Barcelona", km: 178, type: "hilly", icon: "⛰️", desc: "Punchy finish on Montjuïc" },
+    { num: 3, date: "Mon 6 Jul", from: "Granollers", to: "Andorra la Vella", km: 195, type: "mountain", icon: "🏔️", desc: "First Pyrenees test" },
+    { num: 4, date: "Tue 7 Jul", from: "Andorra", to: "Foix", km: 165, type: "mountain", icon: "🏔️", desc: "Second Pyrenean stage" },
+    { num: 5, date: "Wed 8 Jul", from: "Pamiers", to: "Toulouse", km: 175, type: "flat", icon: "🏁", desc: "Sprinters' day" },
+    { num: 6, date: "Thu 9 Jul", from: "Toulouse", to: "Carcassonne", km: 188, type: "flat", icon: "🏁", desc: "Bunch sprint likely" },
+    { num: 7, date: "Fri 10 Jul", from: "Béziers", to: "Montpellier", km: 172, type: "flat", icon: "🏁", desc: "Coastal sprint stage" },
+    { num: 8, date: "Sat 11 Jul", from: "Nîmes", to: "Mont Ventoux", km: 198, type: "mountain", icon: "🏔️", desc: "Iconic Mont Ventoux finish" },
+    { num: 9, date: "Sun 12 Jul", from: "Avignon", to: "Gap", km: 184, type: "hilly", icon: "⛰️", desc: "Transitional hilly stage" },
+    { num: 10, date: "Mon 13 Jul", from: "REST DAY", to: "Grenoble", km: 0, type: "rest", icon: "😴", desc: "First rest day" },
+    { num: 11, date: "Tue 14 Jul", from: "Grenoble", to: "Alpe d'Huez", km: 152, type: "mountain", icon: "🏔️", desc: "Bastille Day on Alpe d'Huez" },
+    { num: 12, date: "Wed 15 Jul", from: "Bourg d'Oisans", to: "Courchevel", km: 175, type: "mountain", icon: "🏔️", desc: "Queen stage in the Alps" },
+    { num: 13, date: "Thu 16 Jul", from: "Albertville", to: "Saint-Étienne", km: 195, type: "hilly", icon: "⛰️", desc: "Breakaway opportunity" },
+    { num: 14, date: "Fri 17 Jul", from: "Saint-Étienne", to: "Clermont-Ferrand", km: 38, type: "itt", icon: "⏱️", desc: "GC time trial" },
+    { num: 15, date: "Sat 18 Jul", from: "Clermont", to: "Le Lioran", km: 168, type: "mountain", icon: "🏔️", desc: "Massif Central climbs" },
+    { num: 16, date: "Sun 19 Jul", from: "Aurillac", to: "Limoges", km: 182, type: "flat", icon: "🏁", desc: "Sprint opportunity" },
+    { num: 17, date: "Mon 20 Jul", from: "REST DAY", to: "Bordeaux", km: 0, type: "rest", icon: "😴", desc: "Second rest day" },
+    { num: 18, date: "Tue 21 Jul", from: "Bordeaux", to: "Pau", km: 188, type: "flat", icon: "🏁", desc: "Final sprint before Pyrenees" },
+    { num: 19, date: "Wed 22 Jul", from: "Pau", to: "Hautacam", km: 165, type: "mountain", icon: "🏔️", desc: "Hautacam summit finish" },
+    { num: 20, date: "Thu 23 Jul", from: "Tarbes", to: "Col du Tourmalet", km: 158, type: "mountain", icon: "🏔️", desc: "Final mountain showdown" },
+    { num: 21, date: "Sun 26 Jul", from: "Versailles", to: "Paris (Champs)", km: 125, type: "flat", icon: "🏆", desc: "Champs-Élysées finale" }
+];
+
+// 🔒 LOCK DATE: July 4, 2026 at 12:00 CET (10:00 UTC)
+const LOCK_DATE = new Date('2026-07-04T10:00:00Z');
+const isLocked = () => new Date() >= LOCK_DATE;
+
+let db = null;
+let firebaseReady = false;
+let currentLeague = 'all';
+let currentEditingId = null; // ID of prediction being edited (null = new)
+
+async function initFirebase() {
+    let tries = 0;
+    while (!window.firebaseSDK && tries < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        tries++;
+    }
+    if (!window.firebaseSDK) { console.error('Firebase SDK failed to load'); return false; }
+    const { initializeApp, getFirestore } = window.firebaseSDK;
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+    firebaseReady = true;
+    console.log('✅ Firebase connected');
+    return true;
 }
 
-body {
-    font-family: 'Roboto', sans-serif;
-    background: var(--bg);
-    color: var(--dark);
-    line-height: 1.6;
-    min-height: 100vh;
+document.addEventListener('DOMContentLoaded', async () => {
+    populateDropdowns();
+    buildStagePredictions();
+    setupTabs();
+    setupLeagueTabs();
+    setupForm();
+    renderRouteStats();
+    setupAdmin();
+    setupLoadButton();
+    checkLockStatus();
+    await initFirebase();
+    setupRealtimeUpdates();
+    renderStages();
+});
+
+function checkLockStatus() {
+    if (isLocked()) {
+        document.getElementById('predictionForm').classList.add('hidden');
+        document.getElementById('lockedMessage').classList.remove('hidden');
+        document.getElementById('lockBanner').innerHTML = '🔒 Predictions are now CLOSED - race has started!';
+    } else {
+        const daysLeft = Math.ceil((LOCK_DATE - new Date()) / (1000*60*60*24));
+        document.getElementById('lockBanner').innerHTML = `📅 Race starts July 4, 2026 — <strong>${daysLeft} days left to predict</strong>`;
+    }
 }
 
-header {
-    background: linear-gradient(135deg, var(--yellow) 0%, #FFA500 100%);
-    padding: 30px 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
+function setupRealtimeUpdates() {
+    if (!firebaseReady) return;
+    const { collection, onSnapshot, doc } = window.firebaseSDK;
+    onSnapshot(collection(db, 'predictions'), () => { renderLeaderboard(); renderPredictionsList(); });
+    onSnapshot(doc(db, 'results', 'current'), () => { renderStages(); renderLeaderboard(); renderPredictionsList(); });
 }
 
-.header-content h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2rem, 6vw, 3.5rem);
-    letter-spacing: 2px;
-    color: var(--dark);
+function populateDropdowns() {
+    const riderSelects = ['yellowJersey','greenJersey','polkaJersey','whiteJersey','podium1','podium2','podium3',
+        'resultYellow','resultGreen','resultPolka','resultWhite','resultPodium1','resultPodium2','resultPodium3'];
+    riderSelects.forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        riders.forEach(r => { const opt = document.createElement('option'); opt.value = r; opt.textContent = r; sel.appendChild(opt); });
+    });
+    ['winningTeam','resultTeam'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        teams.forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.textContent = t; sel.appendChild(opt); });
+    });
+    ['topCountry','resultTopCountry'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        countries.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
+    });
 }
 
-.subtitle {
-    font-size: clamp(1rem, 3vw, 1.3rem);
-    color: var(--dark);
-    margin-top: 5px;
-    font-weight: 300;
-    letter-spacing: 3px;
-    text-transform: uppercase;
+function buildStagePredictions() {
+    const container = document.getElementById('stagePredictions');
+    container.innerHTML = stages.filter(s => s.type !== 'rest').map(s => `
+        <div class="stage-prediction-row">
+            <div><div class="stage-label">S${s.num}</div><span class="stage-sub">${s.type}</span></div>
+            <select id="stagePred${s.num}" required>
+                <option value="">Winner of Stage ${s.num} (${s.from} → ${s.to})</option>
+                ${riders.map(r => `<option value="${r}">${r}</option>`).join('')}
+            </select>
+        </div>`).join('');
 }
 
-.tab-nav {
-    display: flex;
-    background: white;
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    overflow-x: auto;
+async function renderStages() {
+    const results = await getResults();
+    document.getElementById('stagesList').innerHTML = stages.map(s => {
+        const winner = results.stageWinners && results.stageWinners[s.num];
+        return `
+        <div class="stage-card ${s.type}">
+            <div class="stage-number">${s.type === 'rest' ? '💤' : s.num}</div>
+            <div class="stage-info">
+                <div class="stage-route">${s.from} ${s.type === 'rest' ? '' : '→ ' + s.to}</div>
+                <div class="stage-meta">
+                    <span>📅 ${s.date}</span>
+                    ${s.km ? `<span>📏 ${s.km} km</span>` : ''}
+                    <span class="stage-type-badge ${s.type}">${s.type}</span>
+                </div>
+                <div class="stage-meta" style="margin-top:6px;">${s.desc}</div>
+                ${winner ? `<div class="stage-winner-display">🏆 Winner: <strong>${escapeHtml(winner)}</strong></div>` : ''}
+            </div>
+            <div class="stage-icon">${s.icon}</div>
+        </div>`;
+    }).join('');
 }
 
-.tab-btn {
-    flex: 1;
-    min-width: 100px;
-    padding: 16px 12px;
-    border: none;
-    background: none;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    color: var(--gray);
-    transition: all 0.2s;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
+function renderRouteStats() {
+    document.getElementById('flatCount').textContent = stages.filter(s => s.type === 'flat').length;
+    document.getElementById('hillyCount').textContent = stages.filter(s => s.type === 'hilly').length;
+    document.getElementById('mountainCount').textContent = stages.filter(s => s.type === 'mountain').length;
+    document.getElementById('ittCount').textContent = stages.filter(s => s.type === 'itt').length;
 }
 
-.tab-btn:hover { background: var(--light-gray); }
-.tab-btn.active { color: var(--dark); border-bottom-color: var(--yellow); }
-
-main { padding: 20px 0 40px; }
-
-.container { max-width: 800px; margin: 0 auto; padding: 0 16px; }
-
-.tab-content { display: none; animation: fadeIn 0.3s ease-in; }
-.tab-content.active { display: block; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+function setupTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(target).classList.add('active');
+        if (target === 'leaderboard') { renderLeaderboard(); renderPredictionsList(); }
+        if (target === 'stages') renderStages();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }));
 }
 
-.info-banner {
-    background: var(--dark);
-    color: var(--yellow);
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-    font-weight: 700;
-    font-size: 0.95rem;
+function setupLeagueTabs() {
+    document.querySelectorAll('.league-tab').forEach(t => {
+        t.addEventListener('click', () => {
+            document.querySelectorAll('.league-tab').forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            currentLeague = t.dataset.league;
+            renderLeaderboard();
+        });
+    });
 }
 
-.card {
-    background: white;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-    transition: box-shadow 0.2s;
+function setupLoadButton() {
+    document.getElementById('loadMyPrediction').addEventListener('click', async () => {
+        const name = document.getElementById('playerName').value.trim();
+        const pin = document.getElementById('playerPin').value.trim();
+        if (!name || !pin) { alert('Please enter your name and PIN first'); return; }
+        if (!firebaseReady) { alert('Database not ready, try again in a moment'); return; }
+        
+        const predictions = await getPredictions();
+        const match = predictions.find(p => p.playerName.toLowerCase() === name.toLowerCase() && p.pin === pin);
+        
+        if (!match) { alert('❌ No prediction found with that name + PIN combo. Check spelling!'); return; }
+        if (isLocked()) { alert('🔒 Predictions are locked. You can view but not edit.'); }
+        
+        // Load the prediction into the form
+        document.getElementById('legoEmployee').checked = match.legoEmployee || false;
+        document.getElementById('yellowJersey').value = match.yellowJersey || '';
+        document.getElementById('greenJersey').value = match.greenJersey || '';
+        document.getElementById('polkaJersey').value = match.polkaJersey || '';
+        document.getElementById('whiteJersey').value = match.whiteJersey || '';
+        document.getElementById('podium1').value = match.podium1 || '';
+        document.getElementById('podium2').value = match.podium2 || '';
+        document.getElementById('podium3').value = match.podium3 || '';
+        document.getElementById('stageWins').value = match.stageWins || '';
+        document.getElementById('topCountry').value = match.topCountry || '';
+        document.getElementById('winningTeam').value = match.winningTeam || '';
+        document.getElementById('dnfCount').value = match.dnfCount || '';
+        document.getElementById('timeGap').value = match.timeGap || '';
+        Object.entries(match.stagePredictions || {}).forEach(([num, rider]) => {
+            const el = document.getElementById(`stagePred${num}`);
+            if (el) el.value = rider;
+        });
+        currentEditingId = match.id;
+        document.getElementById('submitBtn').textContent = '💾 Update My Prediction';
+        alert(`✅ Loaded prediction for ${match.playerName}. Make changes and click "Update".`);
+    });
 }
 
-.card:hover { box-shadow: var(--shadow-hover); }
-.card h2 { font-size: 1.4rem; margin-bottom: 6px; color: var(--dark); }
-.card-desc { color: var(--gray); font-size: 0.9rem; margin-bottom: 20px; }
+function setupForm() {
+    document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (isLocked()) { alert('🔒 Predictions are closed!'); return; }
+        if (!firebaseReady) { alert('Database not ready'); return; }
+        
+        const stagePredictions = {};
+        stages.filter(s => s.type !== 'rest').forEach(s => {
+            stagePredictions[s.num] = document.getElementById(`stagePred${s.num}`).value;
+        });
+        const prediction = {
+            playerName: document.getElementById('playerName').value.trim(),
+            pin: document.getElementById('playerPin').value.trim(),
+            legoEmployee: document.getElementById('legoEmployee').checked,
+            yellowJersey: document.getElementById('yellowJersey').value,
+            greenJersey: document.getElementById('greenJersey').value,
+            polkaJersey: document.getElementById('polkaJersey').value,
+            whiteJersey: document.getElementById('whiteJersey').value,
+            podium1: document.getElementById('podium1').value,
+            podium2: document.getElementById('podium2').value,
+            podium3: document.getElementById('podium3').value,
+            stagePredictions: stagePredictions,
+            stageWins: document.getElementById('stageWins').value,
+            topCountry: document.getElementById('topCountry').value,
+            winningTeam: document.getElementById('winningTeam').value,
+            dnfCount: document.getElementById('dnfCount').value,
+            timeGap: document.getElementById('timeGap').value,
+            score: 0,
+            submittedAt: new Date().toISOString()
+        };
+        
+        if (!/^\d{4}$/.test(prediction.pin)) { alert('PIN must be exactly 4 digits'); return; }
+        const podium = [prediction.podium1, prediction.podium2, prediction.podium3];
+        if (new Set(podium).size !== 3) { alert('Podium positions must be 3 different riders!'); return; }
+        if (!/^\d{1,2}:[0-5]\d$/.test(prediction.timeGap)) { alert('Time gap must be MM:SS format (e.g. 12:45)'); return; }
 
-.form-group { margin-bottom: 16px; }
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--dark);
+        try {
+            const { collection, addDoc, doc, setDoc } = window.firebaseSDK;
+            if (currentEditingId) {
+                await setDoc(doc(db, 'predictions', currentEditingId), prediction);
+                alert('✅ Prediction updated!');
+            } else {
+                // Check for duplicate name+pin
+                const existing = await getPredictions();
+                const dup = existing.find(p => p.playerName.toLowerCase() === prediction.playerName.toLowerCase() && p.pin === prediction.pin);
+                if (dup) {
+                    alert('⚠️ A prediction with this name + PIN already exists. Click "Load My Prediction" to edit it instead!');
+                    return;
+                }
+                await addDoc(collection(db, 'predictions'), prediction);
+            }
+            showSuccess();
+            e.target.reset();
+            currentEditingId = null;
+            document.getElementById('submitBtn').textContent = 'Submit Predictions 🚴‍♂️';
+        } catch (err) {
+            console.error(err);
+            alert('Error: ' + err.message);
+        }
+    });
 }
 
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 12px 14px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white;
-    transition: border-color 0.2s;
-    font-family: inherit;
+async function getPredictions() {
+    if (!firebaseReady) return [];
+    const { collection, getDocs } = window.firebaseSDK;
+    const snap = await getDocs(collection(db, 'predictions'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: var(--yellow);
+async function getResults() {
+    if (!firebaseReady) return { stageWinners: {} };
+    const { doc, getDoc } = window.firebaseSDK;
+    const snap = await getDoc(doc(db, 'results', 'current'));
+    return snap.exists() ? snap.data() : { stageWinners: {} };
 }
 
-.jersey { padding: 12px; border-radius: 8px; border-left: 4px solid; margin-bottom: 14px; }
-.jersey.yellow { border-color: var(--yellow); background: #fffdf0; }
-.jersey.green { border-color: var(--green); background: #f0fff5; }
-.jersey.polka { border-color: var(--polka); background: #fff0f0; }
-.jersey.white { border-color: #999; background: #fafafa; }
-.jersey-icon { margin-right: 6px; }
-
-.podium-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-
-@media (min-width: 600px) {
-    .podium-grid { grid-template-columns: repeat(3, 1fr); }
+async function saveResults(results) {
+    const { doc, setDoc } = window.firebaseSDK;
+    await setDoc(doc(db, 'results', 'current'), results);
 }
 
-.submit-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--yellow), #FFA500);
-    color: var(--dark);
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+function showSuccess() {
+    const msg = document.getElementById('successMessage');
+    msg.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => msg.classList.add('hidden'), 4000);
 }
 
-.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4); }
-.submit-btn:active { transform: translateY(0); }
-
-.success-message {
-    background: var(--green);
-    color: white;
-    padding: 16px;
-    border-radius: 8px;
-    text-align: center;
-    margin-top: 20px;
-    font-weight: 700;
+// ============ SCORING ============
+function timeGapToSeconds(str) {
+    if (!str || !/^\d{1,2}:[0-5]\d$/.test(str)) return null;
+    const [m, s] = str.split(':').map(Number);
+    return m * 60 + s;
 }
 
-.hidden { display: none; }
-
-.leaderboard-item {
-    display: flex;
-    align-items: center;
-    padding: 14px;
-    border-bottom: 1px solid var(--light-gray);
-    gap: 16px;
+function calculateScore(prediction, results) {
+    let score = 0;
+    if (results.stageWinners) {
+        Object.entries(results.stageWinners).forEach(([stageNum, winner]) => {
+            if (winner && prediction.stagePredictions && prediction.stagePredictions[stageNum] === winner) score += 10;
+        });
+    }
+    if (results.yellowJersey && prediction.yellowJersey === results.yellowJersey) score += 25;
+    if (results.greenJersey && prediction.greenJersey === results.greenJersey) score += 15;
+    if (results.polkaJersey && prediction.polkaJersey === results.polkaJersey) score += 15;
+    if (results.whiteJersey && prediction.whiteJersey === results.whiteJersey) score += 15;
+    const actualPodium = [results.podium1, results.podium2, results.podium3].filter(Boolean);
+    const predictedPodium = [prediction.podium1, prediction.podium2, prediction.podium3];
+    predictedPodium.forEach((p, i) => {
+        if (actualPodium[i] && p === actualPodium[i]) score += 20;
+        else if (p && actualPodium.includes(p)) score += 10;
+    });
+    if (results.team && prediction.winningTeam === results.team) score += 15;
+    if (results.stageWins && parseInt(prediction.stageWins) === parseInt(results.stageWins)) score += 10;
+    if (results.topCountry && prediction.topCountry === results.topCountry) score += 10;
+    if (results.dnfCount !== undefined && results.dnfCount !== '' && Math.abs(parseInt(prediction.dnfCount) - parseInt(results.dnfCount)) <= 3) score += 10;
+    return score;
 }
 
-.leaderboard-item:last-child { border-bottom: none; }
-
-.rank {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    min-width: 40px;
-    color: var(--yellow);
+function calcTieBreakerDiff(prediction, results) {
+    const actual = timeGapToSeconds(results.timeGap);
+    const predicted = timeGapToSeconds(prediction.timeGap);
+    if (actual === null || predicted === null) return Infinity;
+    return Math.abs(actual - predicted);
 }
 
-.rank.gold { color: var(--yellow); }
-.rank.silver { color: #C0C0C0; }
-.rank.bronze { color: #CD7F32; }
-
-.player-info { flex: 1; }
-.player-name { font-weight: 700; font-size: 1.05rem; }
-.player-score { color: var(--gray); font-size: 0.9rem; }
-
-.prediction-card {
-    border: 1px solid var(--light-gray);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
+async function renderLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    if (!firebaseReady) { list.innerHTML = '<p class="empty-state">Connecting to database...</p>'; return; }
+    const allPredictions = await getPredictions();
+    const results = await getResults();
+    
+    // Filter by league
+    let predictions = allPredictions;
+    if (currentLeague === 'lego') predictions = allPredictions.filter(p => p.legoEmployee);
+    
+    if (predictions.length === 0) {
+        list.innerHTML = `<p class="empty-state">No predictions in ${currentLeague === 'lego' ? 'LEGO' : 'All'} league yet.</p>`;
+        return;
+    }
+    
+    predictions.forEach(p => {
+        p.score = calculateScore(p, results);
+        p.tieBreakerDiff = calcTieBreakerDiff(p, results);
+    });
+    
+    // Sort: score DESC, then tieBreakerDiff ASC
+    const sorted = [...predictions].sort((a,b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.tieBreakerDiff - b.tieBreakerDiff;
+    });
+    
+    list.innerHTML = sorted.map((p,i) => {
+        let rc = ''; if (i===0) rc='gold'; else if (i===1) rc='silver'; else if (i===2) rc='bronze';
+        const tbInfo = results.timeGap && p.tieBreakerDiff !== Infinity 
+            ? `Tie-breaker: predicted ${p.timeGap} (±${p.tieBreakerDiff}s)` 
+            : `Tie-breaker: ${p.timeGap || 'not set'}`;
+        return `
+            <div class="leaderboard-item">
+                <div class="rank ${rc}">#${i+1}</div>
+                <div class="player-info">
+                    <div class="player-name">${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''}</div>
+                    <div class="player-score">${p.score} points</div>
+                    <div class="player-tiebreaker">${tbInfo}</div>
+                </div>
+            </div>`;
+    }).join('');
 }
 
-.prediction-card h3 { margin-bottom: 10px; color: var(--dark); }
-
-.prediction-detail {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    font-size: 0.9rem;
-    border-bottom: 1px dashed #eee;
-    flex-wrap: wrap;
-    gap: 8px;
+async function renderPredictionsList() {
+    const list = document.getElementById('predictionsList');
+    if (!firebaseReady) return;
+    const predictions = await getPredictions();
+    const results = await getResults();
+    if (predictions.length === 0) { list.innerHTML = '<p class="empty-state">No predictions yet.</p>'; return; }
+    predictions.forEach(p => p.score = calculateScore(p, results));
+    list.innerHTML = predictions.map(p => `
+        <div class="prediction-card">
+            <h3>${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''} — ${p.score} pts</h3>
+            <div class="prediction-detail"><span>🟡 Yellow</span><span>${escapeHtml(p.yellowJersey)}</span></div>
+            <div class="prediction-detail"><span>🟢 Green</span><span>${escapeHtml(p.greenJersey)}</span></div>
+            <div class="prediction-detail"><span>🔴 Polka</span><span>${escapeHtml(p.polkaJersey)}</span></div>
+            <div class="prediction-detail"><span>⚪ White</span><span>${escapeHtml(p.whiteJersey)}</span></div>
+            <div class="prediction-detail"><span>🥇 1st</span><span>${escapeHtml(p.podium1)}</span></div>
+            <div class="prediction-detail"><span>🥈 2nd</span><span>${escapeHtml(p.podium2)}</span></div>
+            <div class="prediction-detail"><span>🥉 3rd</span><span>${escapeHtml(p.podium3)}</span></div>
+            <div class="prediction-detail"><span>Team</span><span>${escapeHtml(p.winningTeam)}</span></div>
+            <div class="prediction-detail"><span>🌍 Top country</span><span>${escapeHtml(p.topCountry || '')}</span></div>
+            <div class="prediction-detail"><span>⏱️ Tie-breaker</span><span>${escapeHtml(p.timeGap || '')}</span></div>
+            <details style="margin-top:10px;">
+                <summary style="cursor:pointer;font-weight:700;color:var(--gray);">🏁 Stage Predictions</summary>
+                ${Object.entries(p.stagePredictions || {}).map(([num,rider]) => 
+                    `<div class="prediction-detail"><span>Stage ${num}</span><span>${escapeHtml(rider)}</span></div>`).join('')}
+            </details>
+        </div>`).join('');
 }
 
-.prediction-detail:last-child { border-bottom: none; }
-.prediction-detail span:first-child { color: var(--gray); }
-.prediction-detail span:last-child { font-weight: 700; }
+function setupAdmin() {
+    document.getElementById('unlockAdmin').addEventListener('click', () => {
+        const pin = document.getElementById('adminPin').value;
+        if (pin === ADMIN_PIN) {
+            document.getElementById('adminLock').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            buildAdminStageInputs();
+            loadResultsIntoAdmin();
+        } else { alert('Wrong PIN'); }
+    });
 
-.empty-state {
-    text-align: center;
-    color: var(--gray);
-    padding: 30px;
-    font-style: italic;
+    document.getElementById('saveResults').addEventListener('click', async () => {
+        const results = await getResults();
+        results.stageWinners = results.stageWinners || {};
+        stages.filter(s => s.type !== 'rest').forEach(s => {
+            const v = document.getElementById(`adminStage${s.num}`).value;
+            if (v) results.stageWinners[s.num] = v;
+            else delete results.stageWinners[s.num];
+        });
+        results.yellowJersey = document.getElementById('resultYellow').value;
+        results.greenJersey = document.getElementById('resultGreen').value;
+        results.polkaJersey = document.getElementById('resultPolka').value;
+        results.whiteJersey = document.getElementById('resultWhite').value;
+        results.podium1 = document.getElementById('resultPodium1').value;
+        results.podium2 = document.getElementById('resultPodium2').value;
+        results.podium3 = document.getElementById('resultPodium3').value;
+        results.stageWins = document.getElementById('resultStageWins').value;
+        results.topCountry = document.getElementById('resultTopCountry').value;
+        results.team = document.getElementById('resultTeam').value;
+        results.dnfCount = document.getElementById('resultDnfCount').value;
+        results.timeGap = document.getElementById('resultTimeGap').value;
+        await saveResults(results);
+        alert('✅ Results saved! Everyone will see the update.');
+    });
+
+    document.getElementById('resetAll').addEventListener('click', async () => {
+        if (confirm('⚠️ Delete ALL results? (Predictions stay)')) {
+            await saveResults({ stageWinners: {} });
+            location.reload();
+        }
+    });
+
+    const fetchBtn = document.getElementById('fetchAllStages');
+    if (fetchBtn) fetchBtn.addEventListener('click', fetchAllStagesFromWiki);
 }
 
-.rules-list, .scoring-list { padding-left: 24px; }
-.rules-list li, .scoring-list li { margin-bottom: 10px; }
-
-.scoring-list { list-style: none; padding-left: 0; }
-.scoring-list li {
-    padding: 10px 12px;
-    background: var(--light-gray);
-    border-radius: 6px;
-    margin-bottom: 8px;
+function buildAdminStageInputs() {
+    const container = document.getElementById('adminStageResults');
+    container.innerHTML = stages.filter(s => s.type !== 'rest').map(s => `
+        <div class="stage-prediction-row">
+            <div><div class="stage-label">S${s.num}</div><span class="stage-sub">${s.type}</span></div>
+            <select id="adminStage${s.num}">
+                <option value="">-- No result yet --</option>
+                ${riders.map(r => `<option value="${r}">${r}</option>`).join('')}
+            </select>
+        </div>`).join('');
 }
 
-footer {
-    background: var(--dark);
-    color: white;
-    text-align: center;
-    padding: 20px;
-    margin-top: 40px;
+async function loadResultsIntoAdmin() {
+    const r = await getResults();
+    if (r.stageWinners) {
+        Object.entries(r.stageWinners).forEach(([num, winner]) => {
+            const el = document.getElementById(`adminStage${num}`);
+            if (el) el.value = winner;
+        });
+    }
+    const map = {Yellow:'yellowJersey',Green:'greenJersey',Polka:'polkaJersey',White:'whiteJersey',
+                 Podium1:'podium1',Podium2:'podium2',Podium3:'podium3',Team:'team',TopCountry:'topCountry'};
+    Object.entries(map).forEach(([k, v]) => {
+        const el = document.getElementById(`result${k}`);
+        if (el && r[v]) el.value = r[v];
+    });
+    if (r.stageWins) document.getElementById('resultStageWins').value = r.stageWins;
+    if (r.dnfCount) document.getElementById('resultDnfCount').value = r.dnfCount;
+    if (r.timeGap) document.getElementById('resultTimeGap').value = r.timeGap;
 }
 
-footer p { font-size: 0.9rem; }
-
-.route-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-
-.stat {
-    background: var(--light-gray);
-    padding: 14px 8px;
-    border-radius: 8px;
-    text-align: center;
+async function fetchAllStagesFromWiki() {
+    const status = document.getElementById('fetchStatus');
+    const racingStages = stages.filter(s => s.type !== 'rest');
+    let found = 0, pending = 0;
+    status.innerHTML = '🔄 Fetching from Wikipedia...';
+    for (const s of racingStages) {
+        try {
+            const res = await fetch(`${WIKI_PROXY_URL}/?stage=${s.num}`);
+            const data = await res.json();
+            if (data.winner) {
+                const match = riders.find(r => 
+                    r.toLowerCase().includes(data.winner.toLowerCase()) ||
+                    data.winner.toLowerCase().includes(r.split(' (')[0].toLowerCase())
+                );
+                if (match) {
+                    const el = document.getElementById(`adminStage${s.num}`);
+                    if (el) el.value = match;
+                    found++;
+                } else { pending++; }
+            } else { pending++; }
+            status.innerHTML = `🔄 Checking stage ${s.num}/21... (${found} found)`;
+            await new Promise(r => setTimeout(r, 200));
+        } catch (err) {
+            console.error(`Stage ${s.num} fetch failed:`, err);
+            pending++;
+        }
+    }
+    status.innerHTML = `✅ Done! Found <strong>${found}</strong> results, <strong>${pending}</strong> not yet available.`;
 }
 
-.stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    color: var(--dark);
-    line-height: 1;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: var(--gray);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 4px;
-}
-
-.stage-card {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 14px;
-    align-items: center;
-    border-left: 6px solid var(--gray);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stage-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
-
-.stage-card.flat { border-left-color: #4CAF50; }
-.stage-card.hilly { border-left-color: #FF9800; }
-.stage-card.mountain { border-left-color: #E03A3E; }
-.stage-card.itt { border-left-color: #2196F3; }
-.stage-card.rest { border-left-color: #999; opacity: 0.7; }
-
-.stage-number {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.2rem;
-    color: var(--dark);
-    min-width: 50px;
-    text-align: center;
-    line-height: 1;
-}
-
-.stage-info { flex: 1; min-width: 0; }
-
-.stage-route {
-    font-weight: 700;
-    font-size: 1rem;
-    margin-bottom: 4px;
-    color: var(--dark);
-}
-
-.stage-meta {
-    font-size: 0.85rem;
-    color: var(--gray);
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.stage-type-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: white;
-    letter-spacing: 0.5px;
-}
-
-.stage-type-badge.flat { background: #4CAF50; }
-.stage-type-badge.hilly { background: #FF9800; }
-.stage-type-badge.mountain { background: #E03A3E; }
-.stage-type-badge.itt { background: #2196F3; }
-.stage-type-badge.rest { background: #999; }
-
-.stage-icon { font-size: 2rem; }
-
-.stage-winner-display {
-    background: #fffdf0;
-    border-top: 1px dashed var(--yellow);
-    padding-top: 10px;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    grid-column: 1 / -1;
-}
-
-.stage-winner-display strong { color: var(--dark); }
-
-.stage-prediction-row {
-    display: grid;
-    grid-template-columns: 60px 1fr;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.stage-prediction-row:last-child { border-bottom: none; }
-
-.stage-prediction-row .stage-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    color: var(--dark);
-}
-
-.stage-prediction-row .stage-sub {
-    font-size: 0.7rem;
-    color: var(--gray);
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stage-prediction-row select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    background: white;
-}
-
-.stage-prediction-row select:focus { outline: none; border-color: var(--yellow); }
-
-@media (max-width: 480px) {
-    .card { padding: 18px; }
-    .card h2 { font-size: 1.2rem; }
-    .tab-btn { font-size: 0.85rem; padding: 14px 8px; }
-    .rank { font-size: 1.4rem; min-width: 32px; }
-    .stage-card { grid-template-columns: auto 1fr; }
-    .stage-icon { display: none; }
-    .stage-number { font-size: 1.8rem; }
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
