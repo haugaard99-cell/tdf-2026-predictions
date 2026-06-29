@@ -64,7 +64,7 @@ const stages = [
     { num: 21, date: "Sun 07/26/2026", from: "Thoiry", to: "Paris Champs-Élysées", km: 133, type: "flat", icon: "🏆", desc: "Flat Stage" }
 ];
 
-const LOCK_DATE = new Date('2026-06-04T10:00:00Z');
+const LOCK_DATE = new Date('2026-07-04T10:00:00Z');
 const isLocked = () => new Date() >= LOCK_DATE;
 
 let db = null;
