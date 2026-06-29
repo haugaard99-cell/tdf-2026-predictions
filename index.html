@@ -24,6 +24,7 @@
     <nav class="tab-nav">
         <button class="tab-btn active" data-tab="predict">Predict</button>
         <button class="tab-btn" data-tab="stages">Stages</button>
+        <button class="tab-btn" data-tab="riders">Riders</button>
         <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
         <button class="tab-btn" data-tab="summary">Summary</button>
         <button class="tab-btn" data-tab="admin">Admin</button>
@@ -149,6 +150,49 @@
             </div>
         </section>
 
+        <section id="riders" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2>🚴 Rider Stats</h2>
+                    <p class="card-desc">Browse all riders — search, filter, and sort by any stat</p>
+                    
+                    <div class="quick-filters">
+                        <button class="quick-filter-btn active" data-preset="all">🌟 All</button>
+                        <button class="quick-filter-btn" data-preset="gc">🏆 Best GC</button>
+                        <button class="quick-filter-btn" data-preset="climbers">🏔️ Climbers</button>
+                        <button class="quick-filter-btn" data-preset="sprinters">⚡ Sprinters</button>
+                        <button class="quick-filter-btn" data-preset="tt">⏱️ Time Trial</button>
+                        <button class="quick-filter-btn" data-preset="classics">🪨 Classics</button>
+                        <button class="quick-filter-btn" data-preset="puncheurs">⛰️ Puncheurs</button>
+                    </div>
+
+                    <div class="rider-filters">
+                        <input type="text" id="riderSearch" placeholder="🔍 Search by name..." class="filter-input">
+                        <select id="riderTeamFilter" class="filter-input">
+                            <option value="">All teams</option>
+                        </select>
+                        <select id="riderNationalityFilter" class="filter-input">
+                            <option value="">All nationalities</option>
+                        </select>
+                    </div>
+
+                    <div class="rider-count" id="riderCount"></div>
+                </div>
+
+                <div id="stageContextBanner" class="card hidden" style="background:#fffdf0;border:2px solid var(--yellow);">
+                    <p style="margin:0;">
+                        <strong>📍 Showing riders best suited for:</strong> 
+                        <span id="stageContextLabel"></span>
+                        <button id="clearStageContext" style="margin-left:10px;padding:4px 12px;border:none;background:var(--dark);color:white;border-radius:4px;cursor:pointer;font-size:0.85rem;">✕ Clear</button>
+                    </p>
+                </div>
+
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div id="ridersTable"></div>
+                </div>
+            </div>
+        </section>
+
         <section id="leaderboard" class="tab-content">
             <div class="container">
                 <div class="card">
@@ -256,6 +300,7 @@
     <footer><p>🚴 Tour de France 2026 Prediction Game | Allez Allez Allez!</p></footer>
 
     <script src="config.js"></script>
+    <script src="riders-stats.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
