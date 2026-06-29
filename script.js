@@ -69,7 +69,7 @@ const isLocked = () => new Date() >= LOCK_DATE;
 
 let db = null;
 let firebaseReady = false;
-let currentLeague = 'all';
+let currentLeague = 'none';  // 'none' | 'lego' | 'akp'
 let currentEditingId = null;
 
 async function initFirebase() {
@@ -167,7 +167,7 @@ async function renderStages() {
         if (winner && s.type !== 'rest') {
             correctPredictors = predictions
                 .filter(p => p.stagePredictions && p.stagePredictions[s.num] === winner)
-                .map(p => ({ name: p.playerName, lego: p.legoEmployee }));
+      .map(p => ({ name: p.playerName, employer: p.employer }));
         }
         
         return `
@@ -186,7 +186,7 @@ async function renderStages() {
                 ${winner && correctPredictors.length > 0 ? `
                     <div class="daily-winners">
                         ✅ <strong>${correctPredictors.length} correct prediction${correctPredictors.length !== 1 ? 's' : ''}:</strong>
-                        ${correctPredictors.map(p => `<span class="winner-tag">${escapeHtml(p.name)}${p.lego ? ' 🧱' : ''}</span>`).join('')}
+                       ${correctPredictors.map(p => `<span class="winner-tag">${escapeHtml(p.name)}${renderEmployerEmoji(p.employer)}</span>`).join('')}
                     </div>
                 ` : ''}
                 ${winner && correctPredictors.length === 0 ? `
@@ -246,7 +246,9 @@ function setupLoadButton() {
         if (!match) { alert('❌ No prediction found with that name + PIN combo. Check spelling!'); return; }
         if (isLocked()) { alert('🔒 Predictions are locked. You can view but not edit.'); }
         
-        document.getElementById('legoEmployee').checked = match.legoEmployee || false;
+       const employerValue = match.employer || 'none';
+        const radio = document.querySelector(`input[name="employer"][value="${employerValue}"]`);
+    if (radio) radio.checked = true;
         document.getElementById('yellowJersey').value = match.yellowJersey || '';
         document.getElementById('greenJersey').value = match.greenJersey || '';
         document.getElementById('polkaJersey').value = match.polkaJersey || '';
@@ -283,7 +285,7 @@ function setupForm() {
         const prediction = {
             playerName: document.getElementById('playerName').value.trim(),
             pin: document.getElementById('playerPin').value.trim(),
-            legoEmployee: document.getElementById('legoEmployee').checked,
+            employer: document.querySelector('input[name="employer"]:checked').value,
             yellowJersey: document.getElementById('yellowJersey').value,
             greenJersey: document.getElementById('greenJersey').value,
             polkaJersey: document.getElementById('polkaJersey').value,
@@ -490,7 +492,8 @@ function getStageWinCounts(predictions, results) {
     if (!results.stageWinners) return [];
     const counts = {};
     predictions.forEach(p => {
-        counts[p.id] = { name: p.playerName, lego: p.legoEmployee, correctStages: 0 };
+    counts[p.id] = { name: p.playerName, employer: p.employer, correctStages: 0 };
+});
     });
     Object.entries(results.stageWinners).forEach(([stageNum, winner]) => {
         predictions.forEach(p => {
@@ -508,17 +511,13 @@ async function renderLeaderboard() {
     const allPredictions = await getPredictions();
     const results = await getResults();
     
-    let predictions = allPredictions;
-    if (currentLeague === 'lego') {
-        predictions = allPredictions.filter(p => p.legoEmployee);
-    } else {
-        predictions = allPredictions.filter(p => !p.legoEmployee); // Exclude LEGO employees
-    }
-    
-    if (predictions.length === 0) {
-        list.innerHTML = `<p class="empty-state">No predictions in ${currentLeague === 'lego' ? 'LEGO' : 'Expert'} league yet.</p>`;
-        return;
-    }
+const leagueLabels = { none: 'Expert', lego: 'LEGO', akp: 'AKP' };
+const predictions = allPredictions.filter(p => (p.employer || 'none') === currentLeague);
+
+if (predictions.length === 0) {
+    list.innerHTML = `<p class="empty-state">No predictions in ${leagueLabels[currentLeague]} league yet.</p>`;
+    return;
+}
     
     predictions.forEach(p => {
         const result = calculateScoreWithBreakdown(p, results);
@@ -550,7 +549,7 @@ async function renderLeaderboard() {
                 <summary class="leaderboard-item">
                     <div class="rank ${rc}">#${i+1}</div>
                     <div class="player-info">
-                        <div class="player-name">${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''}</div>
+                     <div class="player-name">${escapeHtml(c.name)}${renderEmployerBadge(c.employer)}</div>
                         <div class="player-score">${p.score} points</div>
                         <div class="player-tiebreaker">${tbInfo}</div>
                     </div>
@@ -1197,6 +1196,19 @@ function renderRiderStats() {
                 `).join('')}
             </tbody>
         </table>
+
+function renderEmployerBadge(employer) {
+    if (employer === 'lego') return '<span class="lego-badge">LEGO</span>';
+    if (employer === 'akp') return '<span class="akp-badge">AKP</span>';
+    return '';
+}
+
+function renderEmployerEmoji(employer) {
+    if (employer === 'lego') return ' 🧱';
+    if (employer === 'akp') return ' 💰';
+    return '';
+}
+
         
         ${filtered.map(r => `
             <div class="rider-card">
