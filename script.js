@@ -97,10 +97,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupAdmin();
     setupLoadButton();
     checkLockStatus();
+    setupRiderStatsTab();   // 🆕
+    renderRiderStats();     // 🆕
     await initFirebase();
     setupRealtimeUpdates();
     renderStages();
-    renderSummary(); // New function to render summary
+    renderSummary();
 });
 
 function checkLockStatus() {
@@ -179,6 +181,7 @@ async function renderStages() {
                     <span class="stage-type-badge ${s.type}">${s.type}</span>
                 </div>
                 <div class="stage-meta" style="margin-top:6px;">${s.desc}</div>
+                ${s.type !== 'rest' ? `<button class="see-top-riders-btn" onclick="showRidersForStage(${s.num}, '${s.type}')">👀 See top riders for this stage</button>` : ''}
                 ${winner ? `<div class="stage-winner-display">🏆 Winner: <strong>${escapeHtml(winner)}</strong></div>` : ''}
                 ${winner && correctPredictors.length > 0 ? `
                     <div class="daily-winners">
@@ -214,6 +217,7 @@ function setupTabs() {
         if (target === 'leaderboard') { renderLeaderboard(); renderPredictionsList(); }
         if (target === 'stages') renderStages();
         if (target === 'summary') renderSummary();
+        if (target === 'riders') renderRiderStats();   // 🆕
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }));
 }
@@ -858,19 +862,19 @@ async function renderSummary() {
             <h3>🎯 Numeric Predictions</h3>
             <div class="summary-stats-grid">
                 <div class="summary-stat">
-                    <div class="summary-stat-num">${avg(stageWinsArr).toFixed(1)}</div>
+                    <div class="summary-stat-num">${stageWinsArr.length ? avg(stageWinsArr).toFixed(1) : '—'}</div>
                     <div class="summary-stat-label">Avg Most Stage Wins</div>
-                    <div class="summary-stat-range">Range: ${Math.min(...stageWinsArr)}–${Math.max(...stageWinsArr)}</div>
+                    <div class="summary-stat-range">${stageWinsArr.length ? `Range: ${Math.min(...stageWinsArr)}–${Math.max(...stageWinsArr)}` : ''}</div>
                 </div>
                 <div class="summary-stat">
-                    <div class="summary-stat-num">${avg(dnfArr).toFixed(0)}</div>
+                    <div class="summary-stat-num">${dnfArr.length ? avg(dnfArr).toFixed(0) : '—'}</div>
                     <div class="summary-stat-label">Avg DNF Count</div>
-                    <div class="summary-stat-range">Range: ${Math.min(...dnfArr)}–${Math.max(...dnfArr)}</div>
+                    <div class="summary-stat-range">${dnfArr.length ? `Range: ${Math.min(...dnfArr)}–${Math.max(...dnfArr)}` : ''}</div>
                 </div>
                 <div class="summary-stat">
                     <div class="summary-stat-num">${timeGapSecsArr.length ? fmtTimeGap(avg(timeGapSecsArr)) : '—'}</div>
                     <div class="summary-stat-label">Avg Time Gap (1st→10th)</div>
-                    <div class="summary-stat-range">Range: ${timeGapSecsArr.length ? fmtTimeGap(Math.min(...timeGapSecsArr)) + '–' + fmtTimeGap(Math.max(...timeGapSecsArr)) : '—'}</div>
+                    <div class="summary-stat-range">${timeGapSecsArr.length ? `Range: ${fmtTimeGap(Math.min(...timeGapSecsArr))}–${fmtTimeGap(Math.max(...timeGapSecsArr))}` : ''}</div>
                 </div>
             </div>
         </div>
@@ -961,4 +965,314 @@ function renderBars(items, total, color) {
             </div>
         `;
     }).join('')}</div>`;
+}
+
+// ============ 🆕 RIDER STATS TAB ============
+
+let currentRiderFilter = {
+    search: '',
+    team: '',
+    nationality: '',
+    preset: 'all',
+    sortColumn: 'avg',
+    sortDirection: 'desc',
+    stageContext: null
+};
+
+// Preset configs: which stat to sort by, and which columns to highlight
+const RIDER_PRESETS = {
+    all:        { sortBy: 'avg', highlight: [] },
+    gc:         { sortBy: 'gc',  highlight: ['gc', 'mtn', 'itt'] },
+    climbers:   { sortBy: 'mtn', highlight: ['mtn', 'hll'] },
+    sprinters:  { sortBy: 'spr', highlight: ['spr', 'flt'] },
+    tt:         { sortBy: 'itt', highlight: ['itt', 'ttl'] },
+    classics:   { sortBy: 'or',  highlight: ['or', 'cob', 'hll'] },
+    puncheurs:  { sortBy: 'hll', highlight: ['hll', 'or'] }
+};
+
+// Map stage types to presets (for "See top riders for this stage" feature)
+const STAGE_TYPE_TO_PRESET = {
+    flat:     'sprinters',
+    hilly:    'puncheurs',
+    mountain: 'climbers',
+    itt:      'tt'
+};
+
+function setupRiderStatsTab() {
+    if (typeof ridersStats === 'undefined') {
+        console.warn('⚠️ ridersStats not loaded — Riders tab will not work');
+        return;
+    }
+    populateRiderFilters();
+    
+    // Search input
+    document.getElementById('riderSearch').addEventListener('input', (e) => {
+        currentRiderFilter.search = e.target.value.toLowerCase();
+        renderRiderStats();
+    });
+    
+    // Team filter
+    document.getElementById('riderTeamFilter').addEventListener('change', (e) => {
+        currentRiderFilter.team = e.target.value;
+        renderRiderStats();
+    });
+    
+    // Nationality filter
+    document.getElementById('riderNationalityFilter').addEventListener('change', (e) => {
+        currentRiderFilter.nationality = e.target.value;
+        renderRiderStats();
+    });
+    
+    // Quick filter buttons
+    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRiderFilter.preset = btn.dataset.preset;
+            const preset = RIDER_PRESETS[btn.dataset.preset];
+            currentRiderFilter.sortColumn = preset.sortBy;
+            currentRiderFilter.sortDirection = 'desc';
+            renderRiderStats();
+        });
+    });
+    
+    // Clear stage context
+    document.getElementById('clearStageContext').addEventListener('click', () => {
+        currentRiderFilter.stageContext = null;
+        document.getElementById('stageContextBanner').classList.add('hidden');
+        document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.quick-filter-btn[data-preset="all"]').classList.add('active');
+        currentRiderFilter.preset = 'all';
+        currentRiderFilter.sortColumn = 'avg';
+        renderRiderStats();
+    });
+}
+
+function populateRiderFilters() {
+    // Teams
+    const teamSelect = document.getElementById('riderTeamFilter');
+    const uniqueTeams = [...new Set(ridersStats.map(r => r.team))].sort();
+    uniqueTeams.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        teamSelect.appendChild(opt);
+    });
+    
+    // Nationalities
+    const natSelect = document.getElementById('riderNationalityFilter');
+    const uniqueNats = [...new Set(ridersStats.map(r => r.nationality))].sort();
+    uniqueNats.forEach(n => {
+        const rider = ridersStats.find(r => r.nationality === n);
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.textContent = `${rider.flag} ${n}`;
+        natSelect.appendChild(opt);
+    });
+}
+
+function getStatClass(value) {
+    if (value >= 90) return 'elite';
+    if (value >= 80) return 'great';
+    if (value >= 65) return 'good';
+    if (value >= 45) return 'average';
+    return 'low';
+}
+
+function filterAndSortRiders() {
+    if (typeof ridersStats === 'undefined') return [];
+    let list = [...ridersStats];
+    
+    // Search filter
+    if (currentRiderFilter.search) {
+        list = list.filter(r => 
+            r.name.toLowerCase().includes(currentRiderFilter.search) ||
+            r.team.toLowerCase().includes(currentRiderFilter.search) ||
+            r.nationality.toLowerCase().includes(currentRiderFilter.search)
+        );
+    }
+    
+    // Team filter
+    if (currentRiderFilter.team) {
+        list = list.filter(r => r.team === currentRiderFilter.team);
+    }
+    
+    // Nationality filter
+    if (currentRiderFilter.nationality) {
+        list = list.filter(r => r.nationality === currentRiderFilter.nationality);
+    }
+    
+    // Sort
+    const col = currentRiderFilter.sortColumn;
+    const dir = currentRiderFilter.sortDirection === 'asc' ? 1 : -1;
+    
+    list.sort((a, b) => {
+        let aVal, bVal;
+        if (col === 'name') { aVal = a.name; bVal = b.name; }
+        else if (col === 'team') { aVal = a.team; bVal = b.team; }
+        else if (col === 'nationality') { aVal = a.nationality; bVal = b.nationality; }
+        else if (col === 'age') { aVal = a.age || 999; bVal = b.age || 999; }
+        else if (col === 'height') { aVal = a.height || 0; bVal = b.height || 0; }
+        else if (col === 'weight') { aVal = a.weight || 0; bVal = b.weight || 0; }
+        else { aVal = a.stats[col] || 0; bVal = b.stats[col] || 0; }
+        
+        if (typeof aVal === 'string') return aVal.localeCompare(bVal) * dir;
+        return (aVal - bVal) * dir;
+    });
+    
+    return list;
+}
+
+function renderRiderStats() {
+    const container = document.getElementById('ridersTable');
+    if (!container) return;
+    if (typeof ridersStats === 'undefined') {
+        container.innerHTML = '<div class="empty-riders">⚠️ Rider stats data not loaded.</div>';
+        return;
+    }
+    
+    const countEl = document.getElementById('riderCount');
+    const filtered = filterAndSortRiders();
+    const highlight = RIDER_PRESETS[currentRiderFilter.preset]?.highlight || [];
+    
+    countEl.textContent = `Showing ${filtered.length} of ${ridersStats.length} riders`;
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-riders">No riders match your filters.</div>';
+        return;
+    }
+    
+    const sortCol = currentRiderFilter.sortColumn;
+    const sortDir = currentRiderFilter.sortDirection;
+    
+    const headers = [
+        { key: 'name', label: 'Rider' },
+        { key: 'team', label: 'Team' },
+        { key: 'nationality', label: 'Nation' },
+        { key: 'age', label: 'Age', cls: 'col-physical' },
+        { key: 'height', label: 'Ht', cls: 'col-physical' },
+        { key: 'weight', label: 'Wt', cls: 'col-physical' },
+        { key: 'avg', label: 'AVG' },
+        { key: 'flt', label: 'FLT' },
+        { key: 'cob', label: 'COB' },
+        { key: 'hll', label: 'HLL' },
+        { key: 'mtn', label: 'MTN' },
+        { key: 'spr', label: 'SPR' },
+        { key: 'itt', label: 'ITT' },
+        { key: 'gc',  label: 'GC' },
+        { key: 'or',  label: 'OR' },
+        { key: 'ttl', label: 'TTL' }
+    ];
+    
+    const tableHtml = `
+        <table class="riders-table">
+            <thead>
+                <tr>
+                    ${headers.map(h => {
+                        const sortClass = sortCol === h.key 
+                            ? (sortDir === 'asc' ? 'sort-asc' : 'sort-desc')
+                            : 'sortable';
+                        return `<th class="${sortClass} ${h.cls || ''}" data-sort="${h.key}">${h.label}</th>`;
+                    }).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                ${filtered.map(r => `
+                    <tr>
+                        <td class="rider-name-cell">
+                            <span class="rider-flag">${r.flag}</span>${escapeHtml(r.name)}
+                        </td>
+                        <td class="rider-team-cell">${escapeHtml(r.team)}</td>
+                        <td>${escapeHtml(r.nationality)}</td>
+                        <td class="col-physical">${r.age || '—'}</td>
+                        <td class="col-physical">${r.height ? r.height + 'cm' : '—'}</td>
+                        <td class="col-physical">${r.weight ? r.weight + 'kg' : '—'}</td>
+                        ${['avg','flt','cob','hll','mtn','spr','itt','gc','or','ttl'].map(stat => {
+                            const val = r.stats[stat];
+                            const cls = getStatClass(val);
+                            const highlightCls = highlight.includes(stat) ? 'highlighted' : '';
+                            return `<td class="stat-cell ${cls} ${highlightCls}">${val}</td>`;
+                        }).join('')}
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        
+        ${filtered.map(r => `
+            <div class="rider-card">
+                <div class="rider-card-header">
+                    <div>
+                        <div class="rider-card-name">
+                            <span class="rider-flag">${r.flag}</span>${escapeHtml(r.name)}
+                        </div>
+                        <div class="rider-card-team">${escapeHtml(r.team)}</div>
+                        <div class="rider-card-meta">
+                            ${r.age || '—'}y · ${r.height ? r.height + 'cm' : '—'} · ${r.weight ? r.weight + 'kg' : '—'}
+                        </div>
+                    </div>
+                </div>
+                <div class="rider-card-stats">
+                    ${['flt','hll','mtn','spr','itt','gc','or','cob','ttl','avg'].map(stat => {
+                        const val = r.stats[stat];
+                        const cls = getStatClass(val);
+                        const highlightCls = highlight.includes(stat) ? 'highlighted' : '';
+                        return `
+                            <div class="rider-stat-box ${cls} ${highlightCls}">
+                                <div class="stat-label-sm">${stat}</div>
+                                <div class="stat-num-sm">${val}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `).join('')}
+    `;
+    
+    container.innerHTML = tableHtml;
+    
+    // Wire up sortable column headers
+    container.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.sort;
+            if (currentRiderFilter.sortColumn === col) {
+                currentRiderFilter.sortDirection = currentRiderFilter.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentRiderFilter.sortColumn = col;
+                currentRiderFilter.sortDirection = 'desc';
+            }
+            renderRiderStats();
+        });
+    });
+}
+
+// Called from Stages tab — switches to Riders tab and applies stage-type preset
+function showRidersForStage(stageNum, stageType) {
+    const preset = STAGE_TYPE_TO_PRESET[stageType];
+    if (!preset) return;
+    
+    const stage = stages.find(s => s.num === stageNum);
+    if (!stage) return;
+    
+    // Switch tab
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-tab="riders"]').classList.add('active');
+    document.getElementById('riders').classList.add('active');
+    
+    // Apply preset
+    document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.quick-filter-btn[data-preset="${preset}"]`).classList.add('active');
+    currentRiderFilter.preset = preset;
+    currentRiderFilter.sortColumn = RIDER_PRESETS[preset].sortBy;
+    currentRiderFilter.sortDirection = 'desc';
+    currentRiderFilter.stageContext = { stageNum, stageType };
+    
+    // Show context banner
+    const banner = document.getElementById('stageContextBanner');
+    const label = document.getElementById('stageContextLabel');
+    label.innerHTML = `Stage ${stageNum} (${stage.from} → ${stage.to}) — <em>${stageType}</em>`;
+    banner.classList.remove('hidden');
+    
+    renderRiderStats();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
