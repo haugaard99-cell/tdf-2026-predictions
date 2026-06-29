@@ -401,20 +401,57 @@ const ridersStats = [
 ];
 
 // ============ HELPER: Get rider stats by name match ============
-// Your `riders` array uses format "LASTNAME Firstname (TEAM)" 
-// while ridersStats uses "Firstname Lastname". This helper bridges them.
+// Your `riders` array uses format "LASTNAME Firstname (TEAM)"
+//   e.g. "POGAČAR Tadej (UAE)", "VAN DER POEL Mathieu (APT)", "KRAGH ANDERSEN Søren (LTK)"
+// while ridersStats uses "Firstname Lastname" e.g. "Tadej Pogačar"
+// This helper bridges them — robust to diacritics and multi-word lastnames.
 function getRiderStats(riderEntry) {
-    // riderEntry format: "POGAČAR Tadej (UAE)"
-    const match = riderEntry.match(/^(.+?)\s+(.+?)\s+$([A-Z]+)$$/);
+    if (!riderEntry) return null;
+
+    // 1. Strip the team code in parentheses at the end
+    const match = riderEntry.match(/^(.+?)\s+$([A-Z]+)$\s*$/);
     if (!match) return null;
-    const [, lastname, firstname, teamCode] = match;
-    
-    // Find by matching firstname + lastname (case-insensitive)
+    const nameWithoutTeam = match[1].trim();
+
+    // 2. Split name: ALL-CAPS words = lastname, others = firstname
+    //    Handles "POGAČAR Tadej", "VAN DER POEL Mathieu", "KRAGH ANDERSEN Søren"
+    const words = nameWithoutTeam.split(/\s+/);
+    const lastnameWords = [];
+    const firstnameWords = [];
+    for (const w of words) {
+        // Compare against uppercase version (locale-aware for diacritics like Č, Æ, Ø)
+        if (w.length > 1 && w === w.toLocaleUpperCase()) {
+            lastnameWords.push(w);
+        } else {
+            firstnameWords.push(w);
+        }
+    }
+    if (lastnameWords.length === 0 || firstnameWords.length === 0) return null;
+
+    const targetFirst = normalizeRiderName(firstnameWords.join(' '));
+    const targetLast = normalizeRiderName(lastnameWords.join(' '));
+
+    // 3. Find in ridersStats with normalized comparison
     return ridersStats.find(r => {
-        const parts = r.name.split(' ');
-        const rFirst = parts[0];
-        const rLast = parts.slice(1).join(' ');
-        return rFirst.toLowerCase() === firstname.toLowerCase() && 
-               rLast.toLowerCase() === lastname.toLowerCase().replace(/č/g, 'c').replace(/ć/g, 'c');
-    });
+        const parts = r.name.split(/\s+/);
+        // ridersStats names: first word = firstname, rest = lastname
+        // Handles "Tadej Pogačar", "Mathieu van der Poel", "Tobias Halland Johannessen"
+        const rFirst = normalizeRiderName(parts[0]);
+        const rLast = normalizeRiderName(parts.slice(1).join(' '));
+        return rFirst === targetFirst && rLast === targetLast;
+    }) || null;
+}
+
+// Strip diacritics and lowercase — so "POGAČAR" matches "Pogačar",
+// "WÆRENSKJOLD" matches "Wærenskjold", "RODRÍGUEZ" matches "Rodríguez", etc.
+function normalizeRiderName(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')                    // split base char from accent
+        .replace(/[\u0300-\u036f]/g, '')     // remove combining diacritics
+        .replace(/æ/gi, 'ae')                // Æ is not a diacritic, hardcode
+        .replace(/ø/gi, 'o')                 // Ø is not a diacritic, hardcode
+        .replace(/ß/gi, 'ss')
+        .toLowerCase()
+        .trim();
 }
