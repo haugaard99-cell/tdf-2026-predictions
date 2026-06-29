@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupAdmin();
     setupLoadButton();
     checkLockStatus();
-    setupRiderStatsTab();   // 🆕
-    renderRiderStats();     // 🆕
+    setupRiderStatsTab();
+    renderRiderStats();
     await initFirebase();
     setupRealtimeUpdates();
     renderStages();
@@ -167,7 +167,7 @@ async function renderStages() {
         if (winner && s.type !== 'rest') {
             correctPredictors = predictions
                 .filter(p => p.stagePredictions && p.stagePredictions[s.num] === winner)
-      .map(p => ({ name: p.playerName, employer: p.employer }));
+                .map(p => ({ name: p.playerName, employer: p.employer }));
         }
         
         return `
@@ -186,7 +186,7 @@ async function renderStages() {
                 ${winner && correctPredictors.length > 0 ? `
                     <div class="daily-winners">
                         ✅ <strong>${correctPredictors.length} correct prediction${correctPredictors.length !== 1 ? 's' : ''}:</strong>
-                       ${correctPredictors.map(p => `<span class="winner-tag">${escapeHtml(p.name)}${renderEmployerEmoji(p.employer)}</span>`).join('')}
+                        ${correctPredictors.map(p => `<span class="winner-tag">${escapeHtml(p.name)}${renderEmployerEmoji(p.employer)}</span>`).join('')}
                     </div>
                 ` : ''}
                 ${winner && correctPredictors.length === 0 ? `
@@ -217,7 +217,7 @@ function setupTabs() {
         if (target === 'leaderboard') { renderLeaderboard(); renderPredictionsList(); }
         if (target === 'stages') renderStages();
         if (target === 'summary') renderSummary();
-        if (target === 'riders') renderRiderStats();   // 🆕
+        if (target === 'riders') renderRiderStats();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }));
 }
@@ -246,9 +246,10 @@ function setupLoadButton() {
         if (!match) { alert('❌ No prediction found with that name + PIN combo. Check spelling!'); return; }
         if (isLocked()) { alert('🔒 Predictions are locked. You can view but not edit.'); }
         
-       const employerValue = match.employer || 'none';
+        const employerValue = match.employer || 'none';
         const radio = document.querySelector(`input[name="employer"][value="${employerValue}"]`);
-    if (radio) radio.checked = true;
+        if (radio) radio.checked = true;
+        
         document.getElementById('yellowJersey').value = match.yellowJersey || '';
         document.getElementById('greenJersey').value = match.greenJersey || '';
         document.getElementById('polkaJersey').value = match.polkaJersey || '';
@@ -492,8 +493,7 @@ function getStageWinCounts(predictions, results) {
     if (!results.stageWinners) return [];
     const counts = {};
     predictions.forEach(p => {
-    counts[p.id] = { name: p.playerName, employer: p.employer, correctStages: 0 };
-});
+        counts[p.id] = { name: p.playerName, employer: p.employer, correctStages: 0 };
     });
     Object.entries(results.stageWinners).forEach(([stageNum, winner]) => {
         predictions.forEach(p => {
@@ -511,13 +511,13 @@ async function renderLeaderboard() {
     const allPredictions = await getPredictions();
     const results = await getResults();
     
-const leagueLabels = { none: 'Expert', lego: 'LEGO', akp: 'AKP' };
-const predictions = allPredictions.filter(p => (p.employer || 'none') === currentLeague);
+    const leagueLabels = { none: 'Expert', lego: 'LEGO', akp: 'AKP' };
+    const predictions = allPredictions.filter(p => (p.employer || 'none') === currentLeague);
 
-if (predictions.length === 0) {
-    list.innerHTML = `<p class="empty-state">No predictions in ${leagueLabels[currentLeague]} league yet.</p>`;
-    return;
-}
+    if (predictions.length === 0) {
+        list.innerHTML = `<p class="empty-state">No predictions in ${leagueLabels[currentLeague]} league yet.</p>`;
+        return;
+    }
     
     predictions.forEach(p => {
         const result = calculateScoreWithBreakdown(p, results);
@@ -549,7 +549,7 @@ if (predictions.length === 0) {
                 <summary class="leaderboard-item">
                     <div class="rank ${rc}">#${i+1}</div>
                     <div class="player-info">
-                     <div class="player-name">${escapeHtml(c.name)}${renderEmployerBadge(c.employer)}</div>
+                        <div class="player-name">${escapeHtml(p.playerName)}${renderEmployerBadge(p.employer)}</div>
                         <div class="player-score">${p.score} points</div>
                         <div class="player-tiebreaker">${tbInfo}</div>
                     </div>
@@ -575,7 +575,7 @@ if (predictions.length === 0) {
                         <div class="leaderboard-item">
                             <div class="rank ${rc}">#${i+1}</div>
                             <div class="player-info">
-                                <div class="player-name">${escapeHtml(c.name)}${c.lego ? '<span class="lego-badge">LEGO</span>' : ''}</div>
+                                <div class="player-name">${escapeHtml(c.name)}${renderEmployerBadge(c.employer)}</div>
                                 <div class="player-score">🏁 ${c.correctStages} correct stage${c.correctStages !== 1 ? 's' : ''}</div>
                             </div>
                         </div>`;
@@ -602,7 +602,7 @@ async function renderPredictionsList() {
     predictions.forEach(p => p.score = calculateScore(p, results));
     list.innerHTML = predictions.map(p => `
         <div class="prediction-card">
-            <h3>${escapeHtml(p.playerName)}${p.legoEmployee ? '<span class="lego-badge">LEGO</span>' : ''} — ${p.score} pts</h3>
+            <h3>${escapeHtml(p.playerName)}${renderEmployerBadge(p.employer)} — ${p.score} pts</h3>
             <div class="prediction-detail"><span>🟡 Yellow</span><span>${escapeHtml(p.yellowJersey)}</span></div>
             <div class="prediction-detail"><span>🟢 Green</span><span>${escapeHtml(p.greenJersey)}</span></div>
             <div class="prediction-detail"><span>🔴 Polka</span><span>${escapeHtml(p.polkaJersey)}</span></div>
@@ -1196,19 +1196,6 @@ function renderRiderStats() {
                 `).join('')}
             </tbody>
         </table>
-
-function renderEmployerBadge(employer) {
-    if (employer === 'lego') return '<span class="lego-badge">LEGO</span>';
-    if (employer === 'akp') return '<span class="akp-badge">AKP</span>';
-    return '';
-}
-
-function renderEmployerEmoji(employer) {
-    if (employer === 'lego') return ' 🧱';
-    if (employer === 'akp') return ' 💰';
-    return '';
-}
-
         
         ${filtered.map(r => `
             <div class="rider-card">
