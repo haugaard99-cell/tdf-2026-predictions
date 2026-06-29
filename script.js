@@ -732,41 +732,233 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// 🆕 Summary Function
+// 🆕 Summary Function - rebuilt with consensus stats
 async function renderSummary() {
     const summaryContent = document.getElementById('summaryContent');
-    if (!firebaseReady) { summaryContent.innerHTML = '<p class="empty-state">Connecting to database...</p>'; return; }
+    if (!firebaseReady) { 
+        summaryContent.innerHTML = '<p class="empty-state">Connecting to database...</p>'; 
+        return; 
+    }
+
+    // 🔒 Hide summary until predictions are locked
+    if (!isLocked()) {
+        const daysLeft = Math.ceil((LOCK_DATE - new Date()) / (1000*60*60*24));
+        summaryContent.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;">
+                <div style="font-size:3rem;margin-bottom:16px;">🔒</div>
+                <h3 style="margin-bottom:10px;">Summary unlocks when the race starts</h3>
+                <p style="color:var(--gray);max-width:400px;margin:0 auto;">
+                    To keep predictions fair, the consensus and stats will be revealed 
+                    when predictions close on <strong>July 4, 2026</strong>.
+                </p>
+                <p style="color:var(--gray);margin-top:14px;">
+                    <strong>${daysLeft} days</strong> until reveal 🚴
+                </p>
+            </div>
+        `;
+        return;
+    }
 
     const predictions = await getPredictions();
-    const results = await getResults();
+    const total = predictions.length;
 
-    const stagePredictions = {};
-    const jerseyPredictions = { yellow: {}, green: {}, polka: {}, white: {} };
-    
-    predictions.forEach(p => {
-        Object.entries(p.stagePredictions || {}).forEach(([stageNum, rider]) => {
-            stagePredictions[stageNum] = stagePredictions[stageNum] || {};
-            stagePredictions[stageNum][rider] = (stagePredictions[stageNum][rider] || 0) + 1;
-        });
-        ['yellowJersey', 'greenJersey', 'polkaJersey', 'whiteJersey'].forEach(jersey => {
-            jerseyPredictions[jersey][p[jersey]] = (jerseyPredictions[jersey][p[jersey]] || 0) + 1;
-        });
-    });
+    if (total === 0) {
+        summaryContent.innerHTML = '<p class="empty-state">No predictions submitted.</p>';
+        return;
+    }
 
-    const mostPredictedStages = Object.entries(stagePredictions).map(([stageNum, riders]) => {
-        const mostPredictedRider = Object.entries(riders).sort((a, b) => b[1] - a[1])[0];
-        return mostPredictedRider ? `Stage ${stageNum}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)` : `Stage ${stageNum}: No predictions`;
-    }).join('<br>');
+    // ===== A. Participation =====
+    const lastSubmission = predictions
+        .map(p => p.lastUpdated || p.submittedAt)
+        .filter(Boolean)
+        .sort()
+        .pop();
+    const lastDate = lastSubmission ? new Date(lastSubmission).toLocaleString('en-GB', { 
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    }) : 'Unknown';
 
-    const mostPredictedJerseys = Object.entries(jerseyPredictions).map(([jersey, riders]) => {
-        const mostPredictedRider = Object.entries(riders).sort((a, b) => b[1] - a[1])[0];
-        return mostPredictedRider ? `${jersey.charAt(0).toUpperCase() + jersey.slice(1)}: ${mostPredictedRider[0]} (${mostPredictedRider[1]} predictions)` : `${jersey.charAt(0).toUpperCase() + jersey.slice(1)}: No predictions`;
-    }).join('<br>');
-
-    summaryContent.innerHTML = `
-        <h3>Most Predicted Stage Winners</h3>
-        <p>${mostPredictedStages || 'No predictions yet.'}</p>
-        <h3>Most Predicted Jerseys</h3>
-        <p>${mostPredictedJerseys || 'No predictions yet.'}</p>
+    const participationHtml = `
+        <div class="summary-section">
+            <h3>👥 Participation</h3>
+            <div class="summary-stats-grid">
+                <div class="summary-stat">
+                    <div class="summary-stat-num">${total}</div>
+                    <div class="summary-stat-label">Total Predictions</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-num" style="font-size:1rem;line-height:1.4;padding-top:8px;">${lastDate}</div>
+                    <div class="summary-stat-label">Last Submission</div>
+                </div>
+            </div>
+        </div>
     `;
+
+    // ===== B. Jersey consensus =====
+    const jerseyConfig = [
+        { key: 'yellowJersey', icon: '🟡', name: 'Yellow Jersey (GC)', color: '#FFD700' },
+        { key: 'greenJersey', icon: '🟢', name: 'Green Jersey (Points)', color: '#00A651' },
+        { key: 'polkaJersey', icon: '🔴', name: 'Polka Dot (KOM)', color: '#E03A3E' },
+        { key: 'whiteJersey', icon: '⚪', name: 'White Jersey (Young)', color: '#999' }
+    ];
+
+    const jerseyHtml = jerseyConfig.map(j => {
+        const top5 = topN(predictions.map(p => p[j.key]).filter(Boolean), 5);
+        return `
+            <div class="summary-section">
+                <h3>${j.icon} ${j.name}</h3>
+                ${renderBars(top5, total, j.color)}
+            </div>
+        `;
+    }).join('');
+
+    // ===== C. Podium consensus =====
+    const podiumHtml = `
+        <div class="summary-section">
+            <h3>🥇 Podium Consensus</h3>
+            <div class="podium-consensus-grid">
+                ${[1,2,3].map(pos => {
+                    const top5 = topN(predictions.map(p => p[`podium${pos}`]).filter(Boolean), 5);
+                    const labels = {1: '🥇 1st place', 2: '🥈 2nd place', 3: '🥉 3rd place'};
+                    return `
+                        <div>
+                            <h4 style="margin-bottom:10px;">${labels[pos]}</h4>
+                            ${renderBars(top5, total, '#FFD700')}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+
+    // ===== D. Bonus predictions =====
+    const teamTop5 = topN(predictions.map(p => p.winningTeam).filter(Boolean), 5);
+    const countryTop5 = topN(predictions.map(p => p.topCountry).filter(Boolean), 5);
+
+    const stageWinsArr = predictions.map(p => parseInt(p.stageWins)).filter(n => !isNaN(n));
+    const dnfArr = predictions.map(p => parseInt(p.dnfCount)).filter(n => !isNaN(n));
+    const timeGapSecsArr = predictions.map(p => timeGapToSeconds(p.timeGap)).filter(n => n !== null);
+
+    const avg = arr => arr.length ? (arr.reduce((a,b) => a+b, 0) / arr.length) : 0;
+    const fmtTimeGap = secs => {
+        const m = Math.floor(secs / 60);
+        const s = Math.round(secs % 60);
+        return `${m}:${String(s).padStart(2,'0')}`;
+    };
+
+    const bonusHtml = `
+        <div class="summary-section">
+            <h3>🏢 Winning Team</h3>
+            ${renderBars(teamTop5, total, '#2196F3')}
+        </div>
+        <div class="summary-section">
+            <h3>🌍 Country with Most Stage Wins</h3>
+            ${renderBars(countryTop5, total, '#FF9800')}
+        </div>
+        <div class="summary-section">
+            <h3>🎯 Numeric Predictions</h3>
+            <div class="summary-stats-grid">
+                <div class="summary-stat">
+                    <div class="summary-stat-num">${avg(stageWinsArr).toFixed(1)}</div>
+                    <div class="summary-stat-label">Avg Most Stage Wins</div>
+                    <div class="summary-stat-range">Range: ${Math.min(...stageWinsArr)}–${Math.max(...stageWinsArr)}</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-num">${avg(dnfArr).toFixed(0)}</div>
+                    <div class="summary-stat-label">Avg DNF Count</div>
+                    <div class="summary-stat-range">Range: ${Math.min(...dnfArr)}–${Math.max(...dnfArr)}</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-num">${timeGapSecsArr.length ? fmtTimeGap(avg(timeGapSecsArr)) : '—'}</div>
+                    <div class="summary-stat-label">Avg Time Gap (1st→10th)</div>
+                    <div class="summary-stat-range">Range: ${timeGapSecsArr.length ? fmtTimeGap(Math.min(...timeGapSecsArr)) + '–' + fmtTimeGap(Math.max(...timeGapSecsArr)) : '—'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // ===== E. Stage consensus (collapsible) =====
+    const stageRows = stages.filter(s => s.type !== 'rest').map(s => {
+        const picks = predictions.map(p => p.stagePredictions?.[s.num]).filter(Boolean);
+        const top3 = topN(picks, 3);
+        const totalPicks = picks.length;
+        if (top3.length === 0) {
+            return `<div class="stage-summary-row"><strong>Stage ${s.num}</strong><span style="color:var(--gray);">No predictions</span></div>`;
+        }
+        const top3Html = top3.map(([rider, count]) => 
+            `<div class="stage-pick-mini">
+                <span>${escapeHtml(rider.split(' (')[0])}</span>
+                <span class="pick-pct">${count} (${Math.round(count/totalPicks*100)}%)</span>
+            </div>`
+        ).join('');
+        return `
+            <div class="stage-summary-row">
+                <div class="stage-summary-label">
+                    <strong>S${s.num}</strong>
+                    <span class="stage-type-badge ${s.type}" style="margin-left:6px;">${s.type}</span>
+                </div>
+                <div class="stage-summary-picks">${top3Html}</div>
+            </div>
+        `;
+    }).join('');
+
+    const stageConsensusHtml = `
+        <div class="summary-section">
+            <details>
+                <summary style="cursor:pointer;font-weight:700;font-size:1.1rem;padding:8px 0;">
+                    🏁 Stage-by-Stage Consensus (click to expand)
+                </summary>
+                <div style="margin-top:12px;">${stageRows}</div>
+            </details>
+        </div>
+    `;
+
+    // ===== F. Brave / contrarian picks =====
+    const yellowPicks = predictions.map(p => ({ name: p.playerName, pick: p.yellowJersey })).filter(x => x.pick);
+    const yellowCounts = {};
+    yellowPicks.forEach(x => { yellowCounts[x.pick] = (yellowCounts[x.pick] || 0) + 1; });
+    const brave = yellowPicks.filter(x => yellowCounts[x.pick] === 1);
+
+    const braveHtml = brave.length > 0 ? `
+        <div class="summary-section">
+            <h3>🦁 Brave Picks (Yellow Jersey)</h3>
+            <p class="card-desc">Players who picked a Yellow Jersey winner that nobody else did</p>
+            <div class="brave-list">
+                ${brave.map(b => `
+                    <div class="brave-item">
+                        <strong>${escapeHtml(b.name)}</strong>
+                        <span>→ ${escapeHtml(b.pick.split(' (')[0])}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    summaryContent.innerHTML = participationHtml + jerseyHtml + podiumHtml + bonusHtml + stageConsensusHtml + braveHtml;
+}
+
+// Helper: count occurrences and return top N as [[item, count], ...]
+function topN(arr, n) {
+    const counts = {};
+    arr.forEach(item => { counts[item] = (counts[item] || 0) + 1; });
+    return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, n);
+}
+
+// Helper: render a list of bars
+function renderBars(items, total, color) {
+    if (items.length === 0) return '<p style="color:var(--gray);font-style:italic;">No data</p>';
+    const max = items[0][1];
+    return `<div class="bar-list">${items.map(([label, count]) => {
+        const pct = Math.round(count / total * 100);
+        const width = Math.round(count / max * 100);
+        const shortLabel = label.length > 35 ? label.substring(0, 32) + '...' : label;
+        return `
+            <div class="bar-row">
+                <div class="bar-label">${escapeHtml(shortLabel)}</div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width:${width}%;background:${color};"></div>
+                    <div class="bar-value">${count} (${pct}%)</div>
+                </div>
+            </div>
+        `;
+    }).join('')}</div>`;
 }
