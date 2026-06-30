@@ -47,7 +47,7 @@ const ridersStats = [
     name: "Florian Lipowitz", teamCode: "RBH", team: "Red Bull - BORA - hansgrohe",
     nationality: "Germany", flag: "🇩🇪",
     height: 184, weight: 65, age: 25,
-    stats: { avg: 88, flt: 65, cob: 35, hll: 82, mtn: 88, spr: 45, itt: 80, gc: 85, or: 50, ttl: 78 }
+    stats: { avg: 91, flt: 70, cob: 40, hll: 86, mtn: 92, spr: 48, itt: 86, gc: 92, or: 55, ttl: 82 }
   },
   {
     name: "Mattias Skjelmose", teamCode: "LTK", team: "Lidl - Trek",
@@ -95,7 +95,7 @@ const ridersStats = [
     name: "Lenny Martinez", teamCode: "BHV", team: "Bahrain - Victorious",
     nationality: "France", flag: "🇫🇷",
     height: 168, weight: 53, age: 22,
-    stats: { avg: 84, flt: 55, cob: 20, hll: 82, mtn: 90, spr: 38, itt: 65, gc: 78, or: 45, ttl: 65 }
+    stats: { avg: 87, flt: 58, cob: 22, hll: 86, mtn: 94, spr: 40, itt: 68, gc: 80, or: 50, ttl: 68 }
   },
   {
     name: "Jai Hindley", teamCode: "RBH", team: "Red Bull - BORA - hansgrohe",
@@ -131,7 +131,7 @@ const ridersStats = [
     name: "Paul Seixas", teamCode: "DCM", team: "Decathlon CMA CGM Team",
     nationality: "France", flag: "🇫🇷",
     height: 178, weight: 62, age: 20,
-    stats: { avg: 78, flt: 62, cob: 35, hll: 78, mtn: 82, spr: 45, itt: 72, gc: 75, or: 50, ttl: 68 }
+    stats: { avg: 85, flt: 68, cob: 35, hll: 85, mtn: 88, spr: 48, itt: 82, gc: 86, or: 55, ttl: 72 }
   },
   {
     name: "Matthew Riccitello", teamCode: "DCM", team: "Decathlon CMA CGM Team",
@@ -187,7 +187,7 @@ const ridersStats = [
     name: "Mads Pedersen", teamCode: "LTK", team: "Lidl - Trek",
     nationality: "Denmark", flag: "🇩🇰",
     height: 180, weight: 78, age: 30,
-    stats: { avg: 91, flt: 92, cob: 92, hll: 90, mtn: 50, spr: 92, itt: 78, gc: 45, or: 95, ttl: 80 }
+    stats: { avg: 93, flt: 94, cob: 94, hll: 92, mtn: 52, spr: 94, itt: 80, gc: 48, or: 96, ttl: 82 }
   },
   {
     name: "Biniam Girmay", teamCode: "NSN", team: "NSN Cycling Team",
@@ -389,7 +389,7 @@ const ridersStats = [
     name: "Kévin Vauquelin", teamCode: "INE", team: "Netcompany INEOS",
     nationality: "France", flag: "🇫🇷",
     height: 178, weight: 68, age: 25,
-    stats: { avg: 82, flt: 75, cob: 55, hll: 86, mtn: 78, spr: 60, itt: 75, gc: 70, or: 75, ttl: 72 }
+    stats: { avg: 86, flt: 78, cob: 60, hll: 90, mtn: 82, spr: 62, itt: 80, gc: 78, or: 80, ttl: 75 }
   },
   {
     name: "Valentin Paret-Peintre", teamCode: "SQS", team: "Soudal Quick-Step",
@@ -425,7 +425,7 @@ const ridersStats = [
     name: "Tobias Halland Johannessen", teamCode: "UNO", team: "Uno-X Mobility",
     nationality: "Norway", flag: "🇳🇴",
     height: 175, weight: 60, age: 26,
-    stats: { avg: 78, flt: 65, cob: 30, hll: 78, mtn: 82, spr: 45, itt: 70, gc: 72, or: 50, ttl: 65 }
+    stats: { avg: 82, flt: 68, cob: 32, hll: 82, mtn: 86, spr: 48, itt: 74, gc: 80, or: 55, ttl: 68 }
   },
   {
     name: "Anders Halland Johannessen", teamCode: "UNO", team: "Uno-X Mobility",
