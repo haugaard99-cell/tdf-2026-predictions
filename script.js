@@ -1,27 +1,93 @@
 // ============ DATA ============
 const riders = [
-    "PHILIPSEN Jasper (APT)", "GROVES Kaden (APT)", "VAN DER POEL Mathieu (APT)", "VERSTRYNGE Emiel (APT)", "RICKAERT Jonas (APT)",
-    "TIBERI Antonio (BHV)", "MARTINEZ Lenny (BHV)", "MOHORIČ Matej (BHV)",
-    "KOOIJ Olav (DCM)", "BENOOT Tiesj (DCM)", "HOOLE Daan (DCM)", "BISSEGGER Stefan (DCM)", "SEIXAS Paul (DCM)",
+    // 1. UAE Team Emirates - XRG
+    "POGAČAR Tadej (UAE)", "DEL TORO Isaac (UAE)", "WELLENS Tim (UAE)", "MCNULTY Brandon (UAE)",
+    "YATES Adam (UAE)", "VERMEERSCH Florian (UAE)", "POLITT Nils (UAE)", "GROSSSCHARTNER Felix (UAE)",
+    
+    // 2. Alpecin - Premier Tech
+    "PHILIPSEN Jasper (APT)", "VAN DER POEL Mathieu (APT)", "VERSTRYNGE Emiel (APT)", "RICKAERT Jonas (APT)",
+    "MARSMAN Tim (APT)", "DEBRUYNE Ramses (APT)", "PLANCKAERT Edward (APT)", "DILLIER Silvan (APT)",
+    
+    // 3. Bahrain - Victorious
+    "TIBERI Antonio (BHV)", "MARTINEZ Lenny (BHV)", "MOHORIČ Matej (BHV)", "BAUHAUS Phil (BHV)",
+    "CARUSO Damiano (BHV)", "GRADEK Kamil (BHV)", "STANNARD Robert (BHV)", "VAN MECHELEN Vlad (BHV)",
+    
+    // 4. Decathlon CMA CGM Team
+    "SEIXAS Paul (DCM)", "KOOIJ Olav (DCM)", "RICCITELLO Matthew (DCM)", "BENOOT Tiesj (DCM)",
+    "HOOLE Daan (DCM)", "PRODHOMME Nicolas (DCM)", "PARET-PEINTRE Aurelien (DCM)", "BOL Cees (DCM)",
+    
+    // 5. EF Education - EasyPost
     "HEALY Ben (EFE)", "ASGREEN Kasper (EFE)", "CARAPAZ Richard (EFE)", "BAUDIN Alex (EFE)",
-    "GAUDU David (GFD)", "MARTIN Guillaume (GFD)",
-    "GANNA Filippo (INE)", "RODRÍGUEZ Carlos (INE)", "KWIATKOWSKI Michał (INE)", "VAUQUELIN Kévin (INE)", "GODON Dorian (INE)", "ARENSMAN Thymen (INE)",
-    "CICCONE Giulio (LTK)", "AYUSO Juan (LTK)", "PEDERSEN Mads (LTK)", "VACEK Mathias (LTK)", "SKJELMOSE Mattias (LTK)", "SIMMONS Quinn (LTK)", "KRAGH ANDERSEN Søren (LTK)",
-    "DE LIE Arnaud (LIM)", "VAN EETVELT Lennert (LIM)", "ZIMMERMANN Georg (LIM)",
+    "QUINN Sean (EFE)", "STEINHAUSER Georg (EFE)", "WALKER Max (EFE)", "VALGREN Michael (EFE)",
+    
+    // 6. Groupama - FDJ United
+    "MARTIN Guillaume (GFD)", "GREGOIRE Romain (GFD)", "BERTHET Clement (GFD)", "BRAZ AFONSO Clement (GFD)",
+    "GERMANI Lorenzo (GFD)", "PACHER Quentin (GFD)", "RUSSO Clement (GFD)", "COSTIOU Ewen (GFD)",
+    
+    // 7. Lidl - Trek
+    "AYUSO Juan (LTK)", "PEDERSEN Mads (LTK)", "VACEK Mathias (LTK)", "SKJELMOSE Mattias (LTK)",
+    "SIMMONS Quinn (LTK)", "GEE-WEST Derek (LTK)", "VERONA Carlos (LTK)", "SKUJINS Toms (LTK)",
+    
+    // 8. Lotto Intermarché
+    "DE LIE Arnaud (LIM)", "VAN EETVELT Lennert (LIM)", "ZIMMERMANN Georg (LIM)", "ARTZ Huub (LIM)",
+    "BERCKMOES Jenno (LIM)", "SLOCK Liam (LIM)", "CRAPS Lars (LIM)", "VEISTROFFER Baptiste (LIM)",
+    
+    // 9. NSN Cycling Team
+    "GIRMAY Biniam (NSN)", "STEWART Jake (NSN)", "ASKEY Lewis (NSN)", "NEILANDS Krists (NSN)",
+    "FRIGO Marco (NSN)", "LOUVEL Matis (NSN)", "BENNETT George (NSN)", "VAN ASBROECK Tom (NSN)",
+    
+    // 10. Red Bull - BORA - hansgrohe
+    "VAN DIJKE Tim (RBH)", "EVENEPOEL Remco (RBH)", "DENZ Nico (RBH)", "LIPOWITZ Florian (RBH)",
+    "CATTANEO Mattia (RBH)", "TRATNIK Jan (RBH)", "VAN GILS Maxim (RBH)", "HINDLEY Jai (RBH)",
+    
+    // 11. Soudal Quick-Step
+    "PARET-PEINTRE Valentin (SQS)", "LANDA Mikel (SQS)", "MERLIER Tim (SQS)", "STUYVEN Jasper (SQS)",
+    "VAN WILDER Ilan (SQS)", "VERVAEKE Louis (SQS)", "VAN BAARLE Dylan (SQS)", "VAN LERBERGHE Bert (SQS)",
+    
+    // 12. Team Jayco AlUla
+    "MATTHEWS Michael (JAY)", "PLAPP Luke (JAY)", "ACKERMANN Pascal (JAY)", "O'CONNOR Ben (JAY)",
+    "SCHMID Mauro (JAY)", "O'BRIEN Kelland (JAY)", "ENGELHARDT Felix (JAY)", "DURBRIDGE Luke (JAY)",
+    
+    // 13. Team Picnic PostNL
+    "BITTNER Pavel (PIC)", "BARGUIL Warren (PIC)", "VAN DEN BROEK Frank (PIC)", "DHONDT Robbe (PIC)",
+    "VAN DEN BERG Julius (PIC)", "MARKL Niklas (PIC)", "BIESTERBOS Frits (PIC)", "DEGENKOLB John (PIC)",
+    
+    // 14. Team Visma | Lease a Bike
+    "CAMPENAERTS Victor (VLB)", "AFFINI Edoardo (VLB)", "HAGENES Per Strand (VLB)", "JORGENSON Matteo (VLB)",
+    "KUSS Sepp (VLB)", "ARMIRAIL Bruno (VLB)", "PIGANZOLI Davide (VLB)", "VINGEGAARD Jonas (VLB)",
+    
+    // 15. Uno-X Mobility
+    "CORT Magnus (UNO)", "JOHANNESSEN Tobias Halland (UNO)", "SKAARSETH Anders (UNO)", "WÆRENSKJOLD Søren (UNO)",
+    "CHARMIG Anthon (UNO)", "ABRAHAMSEN Jonas (UNO)", "TRÆEN Torstein (UNO)", "JOHANNESSEN Anders Halland (UNO)",
+    
+    // 16. XDS Astana Team
+    "TEUNISSEN Mike (XDS)", "HIGUITA Sergio (XDS)", "TEJADA Harold (XDS)", "KANTER Max (XDS)",
+    "VINOKUROV Nicolas (XDS)", "BALLERINI Davide (XDS)", "GATE Aaron (XDS)", "VELASCO Simone (XDS)",
+    
+    // 17. Cofidis
+    "ALLEGAERT Piet (COF)", "BIERMANS Jenthe (COF)", "FRETIN Milan (COF)", "KIRSCH Alex (COF)",
+    "PAGE Hugo (COF)", "ARANBURU Alex (COF)", "THOMAS Benjamin (COF)", "IZAGIRRE Ion (COF)",
+    
+    // 18. Tudor Pro Cycling Team
+    "ALAPHILIPPE Julian (TUD)", "TRENTIN Matteo (TUD)", "STORER Michael (TUD)", "PLUIMERS Rick (TUD)",
+    "DE KLEIJN Arvid (TUD)", "HALLER Marco (TUD)", "HIRSCHI Marc (TUD)", "VOISARD Yannis (TUD)",
+    
+    // 19. TotalEnergies
+    "JEGAT Jordan (TOT)", "DELETTRE Alexandre (TOT)", "TURGIS Anthony (TOT)", "VERCHER Matteo (TOT)",
+    "LE BERRE Mathis (TOT)", "BREUILLARD Nicolas (TOT)", "DELBOVE Joris (TOT)", "GUERNALEC Thibault (TOT)",
+    
+    // 20. Caja Rural - Seguros RGA
+    "MOLENAAR Alex (CJR)", "NICOLAU Joel (CJR)", "BALDERSTONE Abel (CJR)", "BERWICK Sebastian (CJR)",
+    "GAVIRIA Fernando (CJR)", "OLDANI Stefano (CJR)", "OTRUBA Jakub (CJR)", "PARRA Jose Felix (CJR)",
+    
+    // 21. Netcompany INEOS
+    "GANNA Filippo (INE)", "RODRÍGUEZ Carlos (INE)", "KWIATKOWSKI Michał (INE)", "VAUQUELIN Kévin (INE)",
+    "GODON Dorian (INE)", "ARENSMAN Thymen (INE)",
+    
+    // 22. Movistar Team
     "UIJTDEBROEKS Cian (MOV)", "RUBIO Einer (MOV)", "CASTRILLO Pablo (MOV)", "ADRIÀ Roger (MOV)",
-    "GIRMAY Biniam (NSN)", "STEWART Jake (NSN)", "ASKEY Lewis (NSN)", "NEILANDS Krists (NSN)", "FRIGO Marco (NSN)", "LOUVEL Matis (NSN)", "BENNETT George (NSN)", "VAN ASBROECK Tom (NSN)",
-    "EVENEPOEL Remco (RBH)", "DENZ Nico (RBH)", "LIPOWITZ Florian (RBH)", "CATTANEO Mattia (RBH)", "TRATNIK Jan (RBH)", "VAN GILS Maxim (RBH)", "HINDLEY Jai (RBH)", "VAN DIJKE Mick (RBH)",
-    "PARET-PEINTRE Valentin (SQS)", "LANDA Mikel (SQS)", "MERLIER Tim (SQS)", "STUYVEN Jasper (SQS)", "VAN WILDER Ilan (SQS)", "VERVAEKE Louis (SQS)", "VAN BAARLE Dylan (SQS)", "VAN LERBERGHE Bert (SQS)",
-    "MATTHEWS Michael (JAY)", "PLAPP Luke (JAY)", "ACKERMANN Pascal (JAY)", "O'CONNOR Ben (JAY)", "SCHMID Mauro (JAY)", "O'BRIEN Kelland (JAY)", "ENGELHARDT Felix (JAY)", "DURBRIDGE Luke (JAY)",
-    "BITTNER Pavel (PIC)", "BARGUIL Warren (PIC)", "VAN DEN BROEK Frank (PIC)",
-    "CAMPENAERTS Victor (VLB)", "AFFINI Edoardo (VLB)", "HAGENES Per Strand (VLB)", "JORGENSON Matteo (VLB)", "KUSS Sepp (VLB)", "ARMIRAIL Bruno (VLB)", "PIGANZOLI Davide (VLB)", "VINGEGAARD Jonas (VLB)",
-    "POGAČAR Tadej (UAE)", "DEL TORO Isaac (UAE)", "WELLENS Tim (UAE)", "MCNULTY Brandon (UAE)", "YATES Adam (UAE)", "VERMEERSCH Florian (UAE)", "POLITT Nils (UAE)",
-    "KRON Andreas (UNO)", "CORT Magnus (UNO)", "JOHANNESSEN Tobias Halland (UNO)", "SKAARSETH Anders (UNO)", "WÆRENSKJOLD Søren (UNO)", "CHARMIG Anthon (UNO)", "ABRAHAMSEN Jonas (UNO)", "TRÆEN Torstein (UNO)",
-    "TEUNISSEN Mike (XDS)", "HIGUITA Sergio (XDS)", "TEJADA Harold (XDS)", "FORTUNATO Lorenzo (XDS)", "KANTER Max (XDS)",
-    "KIRSCH Alex (COF)", "FRETIN Milan (COF)", "BUCHMANN Emanuel (COF)", "PAGE Hugo (COF)", "ARANBURU Alex (COF)", "IZAGIRRE Ion (COF)", "ALLEGAERT Piet (COF)", "BIERMANS Jenthe (COF)", "THOMAS Benjamin (COF)",
-    "ALAPHILIPPE Julian (TUD)", "STORER Michael (TUD)", "TRENTIN Matteo (TUD)", "PLUIMERS Rick (TUD)",
-    "JEGAT Jordan (TOT)",
-    "MOLENAAR Alex (CJR)", "NICOLAU Joel (CJR)",
+    
+    // 23. Pinarello Q36.5 Pro Cycling Team
     "PIDCOCK Tom (PIN)", "WRIGHT Fred (PIN)", "HERMANS Quinten (PIN)"
 ];
 
