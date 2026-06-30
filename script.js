@@ -728,6 +728,25 @@ async function fetchAllStagesFromWiki() {
     status.innerHTML = `✅ Done! Found <strong>${found}</strong> results, <strong>${pending}</strong> not yet available.`;
 }
 
+// ============ EMPLOYER BADGE HELPERS ============
+// Renders a small badge next to player names showing their league (LEGO or AKP)
+function renderEmployerBadge(employer) {
+    if (employer === 'lego') {
+        return '<span class="lego-badge">LEGO</span>';
+    }
+    if (employer === 'akp') {
+        return '<span class="akp-badge">AKP</span>';
+    }
+    return ''; // 'none' / Expert league = no badge
+}
+
+// Compact emoji version (used inside the green "correct prediction" tags on Stages tab)
+function renderEmployerEmoji(employer) {
+    if (employer === 'lego') return ' 🧱';
+    if (employer === 'akp') return ' 🟢';
+    return '';
+}
+
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
