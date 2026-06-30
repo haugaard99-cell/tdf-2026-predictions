@@ -764,38 +764,228 @@ async function loadResultsIntoAdmin() {
     if (r.timeGap) document.getElementById('resultTimeGap').value = r.timeGap;
 }
 
+// ============ 🆕 WIKIPEDIA RIDER NAME MATCHING ============
+// Wikipedia returns names in various formats: "Tadej Pogačar", "T. Pogačar",
+// "Pogačar", "Mathieu van der Poel", etc.
+// Our `riders` array format: "POGAČAR Tadej (UAE)"
+
+// Normalize: strip diacritics, lowercase, remove punctuation
+function normalizeForMatch(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/æ/gi, 'ae')
+        .replace(/ø/gi, 'o')
+        .replace(/ß/gi, 'ss')
+        .replace(/[.\-']/g, ' ')       // dots, hyphens, apostrophes → space
+        .replace(/\s+/g, ' ')          // collapse whitespace
+        .toLowerCase()
+        .trim();
+}
+
+// Parse "POGAČAR Tadej (UAE)" → { lastname, firstname, team, original }
+// Handles "VAN DER POEL Mathieu", "KRAGH ANDERSEN Søren", etc.
+function parseRiderEntry(riderEntry) {
+    const match = riderEntry.match(/^(.+?)\s+$([A-Z]+)$\s*$/);
+    if (!match) return null;
+    
+    const nameWithoutTeam = match[1].trim();
+    const team = match[2];
+    
+    const words = nameWithoutTeam.split(/\s+/);
+    const lastnameWords = [];
+    const firstnameWords = [];
+    
+    for (const w of words) {
+        if (w.length > 1 && w === w.toLocaleUpperCase()) {
+            lastnameWords.push(w);
+        } else {
+            firstnameWords.push(w);
+        }
+    }
+    
+    return {
+        lastname: normalizeForMatch(lastnameWords.join(' ')),
+        firstname: normalizeForMatch(firstnameWords.join(' ')),
+        team,
+        original: riderEntry
+    };
+}
+
+// Parse Wikipedia winner format — "Tadej Pogačar", "T. Pogačar", or "Pogačar"
+function parseWikiWinner(wikiName) {
+    const normalized = normalizeForMatch(wikiName);
+    const words = normalized.split(' ').filter(w => w.length > 0);
+    
+    if (words.length === 0) return null;
+    if (words.length === 1) {
+        return { lastname: words[0], firstname: '', initial: '' };
+    }
+    
+    // If first word is a single letter (initial like "T"), use rest as lastname
+    const firstWord = words[0];
+    if (firstWord.length === 1) {
+        return { lastname: words.slice(1).join(' '), firstname: '', initial: firstWord };
+    }
+    
+    // Otherwise assume "Firstname Lastname(s)"
+    return {
+        lastname: words.slice(1).join(' '),
+        firstname: firstWord,
+        initial: firstWord[0]
+    };
+}
+
+// Match Wikipedia winner against rider list
+// Returns { rider, confidence, reason, candidates? }
+// confidence: 'exact' | 'high' | 'medium' | 'low' | 'none'
+function matchWikiWinnerToRider(wikiName, ridersList) {
+    const wiki = parseWikiWinner(wikiName);
+    if (!wiki) return { rider: null, confidence: 'none', reason: 'Could not parse Wikipedia name' };
+    
+    const parsedRiders = ridersList.map(parseRiderEntry).filter(Boolean);
+    
+    // Step 1: Match by lastname
+    const lastnameMatches = parsedRiders.filter(r => r.lastname === wiki.lastname);
+    
+    if (lastnameMatches.length === 0) {
+        // Try fuzzy: lastname contains wiki lastname or vice versa (handles compound names)
+        const fuzzyMatches = parsedRiders.filter(r => 
+            r.lastname.includes(wiki.lastname) || wiki.lastname.includes(r.lastname)
+        );
+        if (fuzzyMatches.length === 1) {
+            return { rider: fuzzyMatches[0].original, confidence: 'medium', 
+                     reason: `Fuzzy lastname match: "${wikiName}" → "${fuzzyMatches[0].original}"` };
+        }
+        return { rider: null, confidence: 'none', 
+                 reason: `No rider with lastname "${wiki.lastname}" found` };
+    }
+    
+    // Step 2: Exactly one lastname match
+    if (lastnameMatches.length === 1) {
+        const r = lastnameMatches[0];
+        if (wiki.firstname && r.firstname === wiki.firstname) {
+            return { rider: r.original, confidence: 'exact', reason: 'Lastname + firstname match' };
+        }
+        if (wiki.initial && r.firstname.startsWith(wiki.initial)) {
+            return { rider: r.original, confidence: 'high', reason: 'Lastname + initial match' };
+        }
+        return { rider: r.original, confidence: 'high', reason: 'Unique lastname match' };
+    }
+    
+    // Step 3: Multiple lastname matches — disambiguate by firstname
+    if (wiki.firstname) {
+        const firstAndLast = lastnameMatches.filter(r => r.firstname === wiki.firstname);
+        if (firstAndLast.length === 1) {
+            return { rider: firstAndLast[0].original, confidence: 'exact', 
+                     reason: 'Lastname + firstname disambiguated' };
+        }
+        const firstStarts = lastnameMatches.filter(r => 
+            r.firstname.startsWith(wiki.firstname) || wiki.firstname.startsWith(r.firstname)
+        );
+        if (firstStarts.length === 1) {
+            return { rider: firstStarts[0].original, confidence: 'high', 
+                     reason: 'Lastname + partial firstname' };
+        }
+    }
+    
+    if (wiki.initial) {
+        const initialMatch = lastnameMatches.filter(r => r.firstname.startsWith(wiki.initial));
+        if (initialMatch.length === 1) {
+            return { rider: initialMatch[0].original, confidence: 'high', 
+                     reason: 'Lastname + firstname initial' };
+        }
+    }
+    
+    // Ambiguous — return all candidates for manual review
+    return { 
+        rider: null, 
+        confidence: 'low', 
+        reason: `Ambiguous: "${wikiName}" matches ${lastnameMatches.length} riders: ${lastnameMatches.map(r => r.original).join(', ')}`,
+        candidates: lastnameMatches.map(r => r.original)
+    };
+}
+
+// 🆕 IMPROVED: Tightened name matching + confidence-based auto-fill
 async function fetchAllStagesFromWiki() {
     const status = document.getElementById('fetchStatus');
+    const fetchBtn = document.getElementById('fetchAllStages');
     const racingStages = stages.filter(s => s.type !== 'rest');
-    let found = 0, pending = 0;
+    
+    let exact = 0, high = 0, medium = 0, low = 0, notFound = 0, errors = 0;
+    const issues = []; // collect medium/low confidence for review
+    
+    fetchBtn.disabled = true;
     status.innerHTML = '🔄 Fetching from Wikipedia...';
+    
     for (const s of racingStages) {
         try {
             const res = await fetch(`${WIKI_PROXY_URL}/?stage=${s.num}`);
             const data = await res.json();
-            if (data.winner) {
-                const match = riders.find(r => 
-                    r.toLowerCase().includes(data.winner.toLowerCase()) ||
-                    data.winner.toLowerCase().includes(r.split(' (')[0].toLowerCase())
-                );
-                if (match) {
-                    const el = document.getElementById(`adminStage${s.num}`);
-                    if (el) el.value = match;
-                    found++;
-                } else { pending++; }
-            } else { pending++; }
-            status.innerHTML = `🔄 Checking stage ${s.num}/21... (${found} found)`;
+            
+            if (!data.winner) {
+                notFound++;
+                status.innerHTML = `🔄 Stage ${s.num}/21... no result yet`;
+                await new Promise(r => setTimeout(r, 200));
+                continue;
+            }
+            
+            const result = matchWikiWinnerToRider(data.winner, riders);
+            const el = document.getElementById(`adminStage${s.num}`);
+            
+            if (result.confidence === 'exact' || result.confidence === 'high') {
+                if (el) el.value = result.rider;
+                if (result.confidence === 'exact') exact++; else high++;
+            } else if (result.confidence === 'medium') {
+                if (el) el.value = result.rider;
+                medium++;
+                issues.push({ stage: s.num, ...result, wikiName: data.winner });
+            } else {
+                // 'low' or 'none' — do NOT auto-fill, flag for manual review
+                low++;
+                issues.push({ stage: s.num, ...result, wikiName: data.winner });
+            }
+            
+            status.innerHTML = `🔄 Stage ${s.num}/21... (${exact + high} confirmed, ${medium + low} need review)`;
             await new Promise(r => setTimeout(r, 200));
         } catch (err) {
             console.error(`Stage ${s.num} fetch failed:`, err);
-            pending++;
+            errors++;
         }
     }
-    status.innerHTML = `✅ Done! Found <strong>${found}</strong> results, <strong>${pending}</strong> not yet available.`;
+    
+    // Build summary
+    let summary = `
+        <div style="margin-top:12px;">
+            <strong>✅ Auto-filled (exact):</strong> ${exact}<br>
+            <strong>✅ Auto-filled (high confidence):</strong> ${high}<br>
+            ${medium > 0 ? `<strong style="color:#FF9800;">⚠️ Auto-filled (review recommended):</strong> ${medium}<br>` : ''}
+            ${low > 0 ? `<strong style="color:#E03A3E;">🚨 Not filled (needs manual entry):</strong> ${low}<br>` : ''}
+            <strong>⏳ No result yet:</strong> ${notFound}<br>
+            ${errors > 0 ? `<strong style="color:#E03A3E;">❌ Fetch errors:</strong> ${errors}<br>` : ''}
+        </div>
+    `;
+    
+    if (issues.length > 0) {
+        summary += `<div style="margin-top:14px;padding:12px;background:#fff8e1;border:1px solid #FFA500;border-radius:6px;">
+            <strong>📋 Issues to review:</strong>
+            <ul style="margin-top:8px;padding-left:20px;font-size:0.85rem;">
+                ${issues.map(i => `<li><strong>Stage ${i.stage}:</strong> Wikipedia says "<em>${escapeHtml(i.wikiName)}</em>" — ${escapeHtml(i.reason)}</li>`).join('')}
+            </ul>
+            <p style="margin-top:10px;font-size:0.85rem;color:#666;">After reviewing, click <strong>"Save & Recalculate Scores"</strong> below.</p>
+        </div>`;
+    }
+    
+    status.innerHTML = summary;
+    fetchBtn.disabled = false;
+    
+    if (issues.length > 0) {
+        alert(`⚠️ ${issues.length} stage${issues.length !== 1 ? 's' : ''} need manual review. Check the highlighted box below, then click "Save & Recalculate Scores".`);
+    }
 }
 
 // ============ EMPLOYER BADGE HELPERS ============
-// Renders a small badge next to player names showing their league (LEGO or AKP)
 function renderEmployerBadge(employer) {
     if (employer === 'lego') {
         return '<span class="lego-badge">LEGO</span>';
@@ -803,10 +993,9 @@ function renderEmployerBadge(employer) {
     if (employer === 'akp') {
         return '<span class="akp-badge">AKP</span>';
     }
-    return ''; // 'none' / Expert league = no badge
+    return '';
 }
 
-// Compact emoji version (used inside the green "correct prediction" tags on Stages tab)
 function renderEmployerEmoji(employer) {
     if (employer === 'lego') return ' 🧱';
     if (employer === 'akp') return ' 🟢';
