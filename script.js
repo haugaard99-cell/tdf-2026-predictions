@@ -93,12 +93,12 @@ const riders = [
 ];
 
 const teams = [
-    "Alpecin - Premier Tech", "Bahrain - Victorious", "Decathlon CMA CGM Team", "EF Education - EasyPost",
-    "Groupama - FDJ United", "Netcompany INEOS", "Lidl - Trek", "Lotto Intermarché", "Movistar Team",
-    "NSN Cycling Team", "Red Bull - BORA - hansgrohe", "Soudal Quick-Step", "Team Jayco AlUla",
-    "Team Picnic PostNL", "Team Visma | Lease a Bike", "UAE Team Emirates - XRG", "Uno-X Mobility",
-    "XDS Astana Team", "Cofidis", "Tudor Pro Cycling Team", "TotalEnergies", "Caja Rural - Seguros RGA",
-    "Pinarello Q36.5 Pro Cycling Team"
+    "UAE Team Emirates - XRG", "Alpecin - Premier Tech", "Bahrain - Victorious", "Decathlon CMA CGM Team",
+    "EF Education - EasyPost", "Groupama - FDJ United", "Netcompany INEOS", "Lidl - Trek",
+    "Lotto Intermarché", "Movistar Team", "NSN Cycling Team", "Red Bull - BORA - hansgrohe",
+    "Soudal Quick-Step", "Team Jayco AlUla", "Team Picnic PostNL", "Team Visma | Lease a Bike",
+    "Uno-X Mobility", "XDS Astana Team", "Cofidis", "Tudor Pro Cycling Team", "TotalEnergies",
+    "Caja Rural - Seguros RGA", "Pinarello Q36.5 Pro Cycling Team"
 ];
 
 const countries = [
