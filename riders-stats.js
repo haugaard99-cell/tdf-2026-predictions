@@ -3,7 +3,6 @@
 // AVG=Average, FLT=Flat, COB=Cobbles, HLL=Hilly, MTN=Mountain
 // SPR=Sprint, ITT=Time Trial, GC=GC, OR=One-day Race, TTL=Team Trial
 // ⚠️ Stats are estimates based on rider profiles, not official PCS data
-// 🟢 = Confident estimate  🟡 = Educated guess  🔴 = Low-confidence placeholder
 
 const ridersStats = [
   // ============ GC CONTENDERS / TOP CLIMBERS ============
@@ -38,10 +37,10 @@ const ridersStats = [
     stats: { avg: 92, flt: 78, cob: 55, hll: 92, mtn: 90, spr: 60, itt: 80, gc: 88, or: 85, ttl: 80 }
   },
   {
-    name: "Carlos Rodríguez", teamCode: "INE", team: "Netcompany INEOS",
-    nationality: "Spain", flag: "🇪🇸",
-    height: 175, weight: 60, age: 25,
-    stats: { avg: 90, flt: 70, cob: 40, hll: 85, mtn: 90, spr: 50, itt: 82, gc: 88, or: 55, ttl: 80 }
+    name: "Egan Bernal", teamCode: "INE", team: "Netcompany INEOS",
+    nationality: "Colombia", flag: "🇨🇴",
+    height: 175, weight: 60, age: 29,
+    stats: { avg: 85, flt: 65, cob: 30, hll: 82, mtn: 90, spr: 45, itt: 75, gc: 85, or: 55, ttl: 72 }
   },
   {
     name: "Florian Lipowitz", teamCode: "RBH", team: "Red Bull - BORA - hansgrohe",
@@ -294,6 +293,18 @@ const ridersStats = [
     stats: { avg: 88, flt: 88, cob: 70, hll: 70, mtn: 40, spr: 75, itt: 99, gc: 35, or: 80, ttl: 95 }
   },
   {
+    name: "Joshua Tarling", teamCode: "INE", team: "Netcompany INEOS",
+    nationality: "United Kingdom", flag: "🇬🇧",
+    height: 193, weight: 78, age: 22,
+    stats: { avg: 80, flt: 78, cob: 55, hll: 60, mtn: 30, spr: 55, itt: 92, gc: 30, or: 60, ttl: 85 }
+  },
+  {
+    name: "Tobias Foss", teamCode: "INE", team: "Netcompany INEOS",
+    nationality: "Norway", flag: "🇳🇴",
+    height: 184, weight: 70, age: 28,
+    stats: { avg: 78, flt: 70, cob: 45, hll: 72, mtn: 68, spr: 50, itt: 85, gc: 55, or: 55, ttl: 78 }
+  },
+  {
     name: "Edoardo Affini", teamCode: "VLB", team: "Team Visma | Lease a Bike",
     nationality: "Italy", flag: "🇮🇹",
     height: 194, weight: 83, age: 30,
@@ -316,6 +327,12 @@ const ridersStats = [
     nationality: "Belgium", flag: "🇧🇪",
     height: 181, weight: 71, age: 34,
     stats: { avg: 76, flt: 78, cob: 65, hll: 70, mtn: 50, spr: 55, itt: 85, gc: 45, or: 72, ttl: 82 }
+  },
+  {
+    name: "Nelson Oliveira", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Portugal", flag: "🇵🇹",
+    height: 188, weight: 76, age: 37,
+    stats: { avg: 74, flt: 72, cob: 55, hll: 65, mtn: 45, spr: 55, itt: 82, gc: 40, or: 62, ttl: 75 }
   },
 
   // ============ CLASSICS / PUNCHEURS ============
@@ -404,22 +421,10 @@ const ridersStats = [
     stats: { avg: 78, flt: 62, cob: 32, hll: 82, mtn: 82, spr: 48, itt: 65, gc: 62, or: 60, ttl: 65 }
   },
   {
-    name: "Giulio Ciccone", teamCode: "LTK", team: "Lidl - Trek",
-    nationality: "Italy", flag: "🇮🇹",
-    height: 174, weight: 60, age: 31,
-    stats: { avg: 82, flt: 65, cob: 35, hll: 82, mtn: 88, spr: 50, itt: 70, gc: 70, or: 55, ttl: 70 }
-  },
-  {
     name: "Brandon McNulty", teamCode: "UAE", team: "UAE Team Emirates - XRG",
     nationality: "USA", flag: "🇺🇸",
     height: 178, weight: 64, age: 28,
     stats: { avg: 82, flt: 70, cob: 40, hll: 80, mtn: 78, spr: 50, itt: 86, gc: 70, or: 50, ttl: 78 }
-  },
-  {
-    name: "Mikel Landa", teamCode: "SQS", team: "Soudal Quick-Step",
-    nationality: "Spain", flag: "🇪🇸",
-    height: 173, weight: 60, age: 36,
-    stats: { avg: 80, flt: 60, cob: 30, hll: 78, mtn: 86, spr: 40, itt: 70, gc: 78, or: 45, ttl: 70 }
   },
   {
     name: "Tobias Halland Johannessen", teamCode: "UNO", team: "Uno-X Mobility",
@@ -480,6 +485,12 @@ const ridersStats = [
     nationality: "Denmark", flag: "🇩🇰",
     height: 182, weight: 73, age: 34,
     stats: { avg: 75, flt: 70, cob: 75, hll: 78, mtn: 50, spr: 58, itt: 60, gc: 38, or: 78, ttl: 62 }
+  },
+  {
+    name: "Xandro Meurisse", teamCode: "PIN", team: "Pinarello Q36.5 Pro Cycling Team",
+    nationality: "Belgium", flag: "🇧🇪",
+    height: 178, weight: 63, age: 33,
+    stats: { avg: 72, flt: 62, cob: 40, hll: 75, mtn: 68, spr: 48, itt: 62, gc: 48, or: 65, ttl: 58 }
   },
 
   // ============ DOMESTIQUES / UTILITY ============
@@ -622,6 +633,12 @@ const ridersStats = [
     stats: { avg: 66, flt: 60, cob: 40, hll: 65, mtn: 55, spr: 48, itt: 55, gc: 40, or: 55, ttl: 55 }
   },
   {
+    name: "Dorian Godon", teamCode: "INE", team: "Netcompany INEOS",
+    nationality: "France", flag: "🇫🇷",
+    height: 178, weight: 70, age: 29,
+    stats: { avg: 74, flt: 70, cob: 55, hll: 78, mtn: 50, spr: 62, itt: 60, gc: 35, or: 72, ttl: 60 }
+  },
+  {
     name: "Mathias Vacek", teamCode: "LTK", team: "Lidl - Trek",
     nationality: "Czech Republic", flag: "🇨🇿",
     height: 188, weight: 75, age: 23,
@@ -686,6 +703,36 @@ const ridersStats = [
     nationality: "France", flag: "🇫🇷",
     height: 178, weight: 68, age: 24,
     stats: { avg: 63, flt: 60, cob: 50, hll: 60, mtn: 35, spr: 55, itt: 52, gc: 30, or: 58, ttl: 52 }
+  },
+  {
+    name: "Raul Garcia Pierna", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Spain", flag: "🇪🇸",
+    height: 178, weight: 62, age: 24,
+    stats: { avg: 70, flt: 60, cob: 30, hll: 68, mtn: 72, spr: 45, itt: 60, gc: 55, or: 50, ttl: 55 }
+  },
+  {
+    name: "Pablo Castrillo", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Spain", flag: "🇪🇸",
+    height: 175, weight: 60, age: 25,
+    stats: { avg: 72, flt: 58, cob: 28, hll: 68, mtn: 78, spr: 40, itt: 60, gc: 60, or: 45, ttl: 58 }
+  },
+  {
+    name: "Javier Romo", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Spain", flag: "🇪🇸",
+    height: 178, weight: 65, age: 26,
+    stats: { avg: 72, flt: 65, cob: 38, hll: 72, mtn: 68, spr: 52, itt: 62, gc: 50, or: 58, ttl: 58 }
+  },
+  {
+    name: "Jefferson Alveiro Cepeda", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Ecuador", flag: "🇪🇨",
+    height: 172, weight: 60, age: 28,
+    stats: { avg: 72, flt: 58, cob: 28, hll: 68, mtn: 78, spr: 40, itt: 58, gc: 60, or: 45, ttl: 55 }
+  },
+  {
+    name: "Michel Hessmann", teamCode: "MOV", team: "Movistar Team",
+    nationality: "Germany", flag: "🇩🇪",
+    height: 187, weight: 74, age: 24,
+    stats: { avg: 70, flt: 68, cob: 45, hll: 65, mtn: 45, spr: 50, itt: 75, gc: 40, or: 55, ttl: 68 }
   },
   {
     name: "Jake Stewart", teamCode: "NSN", team: "NSN Cycling Team",
@@ -758,6 +805,12 @@ const ridersStats = [
     nationality: "Belgium", flag: "🇧🇪",
     height: 178, weight: 67, age: 26,
     stats: { avg: 78, flt: 70, cob: 50, hll: 82, mtn: 72, spr: 58, itt: 68, gc: 60, or: 75, ttl: 65 }
+  },
+  {
+    name: "Pascal Eenkhoorn", teamCode: "SQS", team: "Soudal Quick-Step",
+    nationality: "Netherlands", flag: "🇳🇱",
+    height: 188, weight: 78, age: 28,
+    stats: { avg: 72, flt: 72, cob: 65, hll: 65, mtn: 40, spr: 58, itt: 65, gc: 35, or: 70, ttl: 65 }
   },
   {
     name: "Ilan Van Wilder", teamCode: "SQS", team: "Soudal Quick-Step",
@@ -1036,24 +1089,6 @@ const ridersStats = [
     stats: { avg: 64, flt: 60, cob: 35, hll: 62, mtn: 60, spr: 45, itt: 55, gc: 45, or: 48, ttl: 52 }
   },
   {
-    name: "Dorian Godon", teamCode: "INE", team: "Netcompany INEOS",
-    nationality: "France", flag: "🇫🇷",
-    height: 178, weight: 70, age: 29,
-    stats: { avg: 74, flt: 70, cob: 55, hll: 78, mtn: 50, spr: 62, itt: 60, gc: 35, or: 72, ttl: 60 }
-  },
-  {
-    name: "Pablo Castrillo", teamCode: "MOV", team: "Movistar Team",
-    nationality: "Spain", flag: "🇪🇸",
-    height: 175, weight: 60, age: 25,
-    stats: { avg: 72, flt: 58, cob: 28, hll: 68, mtn: 78, spr: 40, itt: 60, gc: 60, or: 45, ttl: 58 }
-  },
-  {
-    name: "Roger Adrià", teamCode: "MOV", team: "Movistar Team",
-    nationality: "Spain", flag: "🇪🇸",
-    height: 175, weight: 64, age: 26,
-    stats: { avg: 70, flt: 62, cob: 38, hll: 70, mtn: 65, spr: 50, itt: 60, gc: 45, or: 55, ttl: 58 }
-  },
-  {
     name: "Quinten Hermans", teamCode: "PIN", team: "Pinarello Q36.5 Pro Cycling Team",
     nationality: "Belgium", flag: "🇧🇪",
     height: 178, weight: 67, age: 30,
@@ -1063,7 +1098,7 @@ const ridersStats = [
 
 // ============ HELPER: Get rider stats by name match ============
 // Your `riders` array uses format "LASTNAME Firstname (TEAM)"
-//   e.g. "POGAČAR Tadej (UAE)", "VAN DER POEL Mathieu (APT)", "KRAGH ANDERSEN Søren (LTK)"
+//   e.g. "POGAČAR Tadej (UAE)", "VAN DER POEL Mathieu (APT)"
 // while ridersStats uses "Firstname Lastname" e.g. "Tadej Pogačar"
 // This helper bridges them — robust to diacritics and multi-word lastnames.
 function getRiderStats(riderEntry) {
