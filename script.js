@@ -134,9 +134,6 @@ const stages = [
 const LOCK_DATE = new Date('2026-07-04T10:00:00Z');
 const isLocked = () => new Date() >= LOCK_DATE;
 
-// 🆕 White Jersey age eligibility (Best Young Rider = age ≤ 25)
-const WHITE_JERSEY_MAX_AGE = 25;
-
 let db = null;
 let firebaseReady = false;
 let currentLeague = 'none';  // 'none' | 'lego' | 'akp'
@@ -193,46 +190,19 @@ function setupRealtimeUpdates() {
     onSnapshot(doc(db, 'results', 'current'), () => { renderStages(); renderLeaderboard(); renderPredictionsList(); renderSummary(); });
 }
 
-// 🆕 Returns list of riders eligible for White Jersey (age ≤ 25)
-function getWhiteJerseyEligibleRiders() {
-    if (typeof ridersStats === 'undefined') {
-        console.warn('⚠️ ridersStats not loaded — White Jersey will show all riders');
-        return riders;
-    }
-    const eligible = riders.filter(riderEntry => {
-        const stats = getRiderStats(riderEntry);
-        return stats && stats.age && stats.age <= WHITE_JERSEY_MAX_AGE;
-    });
-    console.log(`✅ White Jersey eligible: ${eligible.length} riders (age ≤ ${WHITE_JERSEY_MAX_AGE})`);
-    return eligible;
-}
-
 function populateDropdowns() {
-    // Rider dropdowns EXCEPT White Jersey — use full rider list
-    const allRiderSelects = ['yellowJersey','greenJersey','polkaJersey','podium1','podium2','podium3',
-        'resultYellow','resultGreen','resultPolka','resultPodium1','resultPodium2','resultPodium3'];
-    allRiderSelects.forEach(id => {
+    const riderSelects = ['yellowJersey','greenJersey','polkaJersey','whiteJersey','podium1','podium2','podium3',
+        'resultYellow','resultGreen','resultPolka','resultWhite','resultPodium1','resultPodium2','resultPodium3'];
+    riderSelects.forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         riders.forEach(r => { const opt = document.createElement('option'); opt.value = r; opt.textContent = r; sel.appendChild(opt); });
     });
-    
-    // 🆕 White Jersey dropdowns — only riders aged ≤ 25
-    const youngRiders = getWhiteJerseyEligibleRiders();
-    ['whiteJersey', 'resultWhite'].forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        youngRiders.forEach(r => { const opt = document.createElement('option'); opt.value = r; opt.textContent = r; sel.appendChild(opt); });
-    });
-    
-    // Team dropdowns
     ['winningTeam','resultTeam'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         teams.forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.textContent = t; sel.appendChild(opt); });
     });
-    
-    // Country dropdowns
     ['topCountry','resultTopCountry'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
@@ -796,7 +766,11 @@ async function loadResultsIntoAdmin() {
 }
 
 // ============ 🆕 WIKIPEDIA RIDER NAME MATCHING ============
+// Wikipedia returns names in various formats: "Tadej Pogačar", "T. Pogačar",
+// "Pogačar", "Mathieu van der Poel", etc.
+// Our `riders` array format: "POGAČAR Tadej (UAE)"
 
+// Normalize: strip diacritics, lowercase, remove punctuation
 function normalizeForMatch(str) {
     if (!str) return '';
     return str
@@ -805,12 +779,14 @@ function normalizeForMatch(str) {
         .replace(/æ/gi, 'ae')
         .replace(/ø/gi, 'o')
         .replace(/ß/gi, 'ss')
-        .replace(/[.\-']/g, ' ')
-        .replace(/\s+/g, ' ')
+        .replace(/[.\-']/g, ' ')       // dots, hyphens, apostrophes → space
+        .replace(/\s+/g, ' ')          // collapse whitespace
         .toLowerCase()
         .trim();
 }
 
+// Parse "POGAČAR Tadej (UAE)" → { lastname, firstname, team, original }
+// Handles "VAN DER POEL Mathieu", "KRAGH ANDERSEN Søren", etc.
 function parseRiderEntry(riderEntry) {
     const match = riderEntry.match(/^(.+?)\s+$([A-Z]+)$\s*$/);
     if (!match) return null;
@@ -838,6 +814,7 @@ function parseRiderEntry(riderEntry) {
     };
 }
 
+// Parse Wikipedia winner format — "Tadej Pogačar", "T. Pogačar", or "Pogačar"
 function parseWikiWinner(wikiName) {
     const normalized = normalizeForMatch(wikiName);
     const words = normalized.split(' ').filter(w => w.length > 0);
@@ -847,11 +824,13 @@ function parseWikiWinner(wikiName) {
         return { lastname: words[0], firstname: '', initial: '' };
     }
     
+    // If first word is a single letter (initial like "T"), use rest as lastname
     const firstWord = words[0];
     if (firstWord.length === 1) {
         return { lastname: words.slice(1).join(' '), firstname: '', initial: firstWord };
     }
     
+    // Otherwise assume "Firstname Lastname(s)"
     return {
         lastname: words.slice(1).join(' '),
         firstname: firstWord,
@@ -859,15 +838,20 @@ function parseWikiWinner(wikiName) {
     };
 }
 
+// Match Wikipedia winner against rider list
+// Returns { rider, confidence, reason, candidates? }
+// confidence: 'exact' | 'high' | 'medium' | 'low' | 'none'
 function matchWikiWinnerToRider(wikiName, ridersList) {
     const wiki = parseWikiWinner(wikiName);
     if (!wiki) return { rider: null, confidence: 'none', reason: 'Could not parse Wikipedia name' };
     
     const parsedRiders = ridersList.map(parseRiderEntry).filter(Boolean);
     
+    // Step 1: Match by lastname
     const lastnameMatches = parsedRiders.filter(r => r.lastname === wiki.lastname);
     
     if (lastnameMatches.length === 0) {
+        // Try fuzzy: lastname contains wiki lastname or vice versa (handles compound names)
         const fuzzyMatches = parsedRiders.filter(r => 
             r.lastname.includes(wiki.lastname) || wiki.lastname.includes(r.lastname)
         );
@@ -879,6 +863,7 @@ function matchWikiWinnerToRider(wikiName, ridersList) {
                  reason: `No rider with lastname "${wiki.lastname}" found` };
     }
     
+    // Step 2: Exactly one lastname match
     if (lastnameMatches.length === 1) {
         const r = lastnameMatches[0];
         if (wiki.firstname && r.firstname === wiki.firstname) {
@@ -890,6 +875,7 @@ function matchWikiWinnerToRider(wikiName, ridersList) {
         return { rider: r.original, confidence: 'high', reason: 'Unique lastname match' };
     }
     
+    // Step 3: Multiple lastname matches — disambiguate by firstname
     if (wiki.firstname) {
         const firstAndLast = lastnameMatches.filter(r => r.firstname === wiki.firstname);
         if (firstAndLast.length === 1) {
@@ -913,6 +899,7 @@ function matchWikiWinnerToRider(wikiName, ridersList) {
         }
     }
     
+    // Ambiguous — return all candidates for manual review
     return { 
         rider: null, 
         confidence: 'low', 
@@ -921,13 +908,14 @@ function matchWikiWinnerToRider(wikiName, ridersList) {
     };
 }
 
+// 🆕 IMPROVED: Tightened name matching + confidence-based auto-fill
 async function fetchAllStagesFromWiki() {
     const status = document.getElementById('fetchStatus');
     const fetchBtn = document.getElementById('fetchAllStages');
     const racingStages = stages.filter(s => s.type !== 'rest');
     
     let exact = 0, high = 0, medium = 0, low = 0, notFound = 0, errors = 0;
-    const issues = [];
+    const issues = []; // collect medium/low confidence for review
     
     fetchBtn.disabled = true;
     status.innerHTML = '🔄 Fetching from Wikipedia...';
@@ -955,6 +943,7 @@ async function fetchAllStagesFromWiki() {
                 medium++;
                 issues.push({ stage: s.num, ...result, wikiName: data.winner });
             } else {
+                // 'low' or 'none' — do NOT auto-fill, flag for manual review
                 low++;
                 issues.push({ stage: s.num, ...result, wikiName: data.winner });
             }
@@ -967,6 +956,7 @@ async function fetchAllStagesFromWiki() {
         }
     }
     
+    // Build summary
     let summary = `
         <div style="margin-top:12px;">
             <strong>✅ Auto-filled (exact):</strong> ${exact}<br>
@@ -1028,6 +1018,7 @@ async function renderSummary() {
         return; 
     }
 
+    // 🔒 Hide summary until predictions are locked
     if (!isLocked()) {
         const daysLeft = Math.ceil((LOCK_DATE - new Date()) / (1000*60*60*24));
         summaryContent.innerHTML = `
@@ -1054,6 +1045,7 @@ async function renderSummary() {
         return;
     }
 
+    // ===== A. Participation =====
     const lastSubmission = predictions
         .map(p => p.lastUpdated || p.submittedAt)
         .filter(Boolean)
@@ -1079,6 +1071,7 @@ async function renderSummary() {
         </div>
     `;
 
+    // ===== B. Jersey consensus =====
     const jerseyConfig = [
         { key: 'yellowJersey', icon: '🟡', name: 'Yellow Jersey (GC)', color: '#FFD700' },
         { key: 'greenJersey', icon: '🟢', name: 'Green Jersey (Points)', color: '#00A651' },
@@ -1096,6 +1089,7 @@ async function renderSummary() {
         `;
     }).join('');
 
+    // ===== C. Podium consensus =====
     const podiumHtml = `
         <div class="summary-section">
             <h3>🥇 Podium Consensus</h3>
@@ -1114,6 +1108,7 @@ async function renderSummary() {
         </div>
     `;
 
+    // ===== D. Bonus predictions =====
     const teamTop5 = topN(predictions.map(p => p.winningTeam).filter(Boolean), 5);
     const countryTop5 = topN(predictions.map(p => p.topCountry).filter(Boolean), 5);
 
@@ -1159,6 +1154,7 @@ async function renderSummary() {
         </div>
     `;
 
+    // ===== E. Stage consensus (collapsible) =====
     const stageRows = stages.filter(s => s.type !== 'rest').map(s => {
         const picks = predictions.map(p => p.stagePredictions?.[s.num]).filter(Boolean);
         const top3 = topN(picks, 3);
@@ -1194,6 +1190,7 @@ async function renderSummary() {
         </div>
     `;
 
+    // ===== F. Brave / contrarian picks =====
     const yellowPicks = predictions.map(p => ({ name: p.playerName, pick: p.yellowJersey })).filter(x => x.pick);
     const yellowCounts = {};
     yellowPicks.forEach(x => { yellowCounts[x.pick] = (yellowCounts[x.pick] || 0) + 1; });
@@ -1217,12 +1214,14 @@ async function renderSummary() {
     summaryContent.innerHTML = participationHtml + jerseyHtml + podiumHtml + bonusHtml + stageConsensusHtml + braveHtml;
 }
 
+// Helper: count occurrences and return top N as [[item, count], ...]
 function topN(arr, n) {
     const counts = {};
     arr.forEach(item => { counts[item] = (counts[item] || 0) + 1; });
     return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, n);
 }
 
+// Helper: render a list of bars
 function renderBars(items, total, color) {
     if (items.length === 0) return '<p style="color:var(--gray);font-style:italic;">No data</p>';
     const max = items[0][1];
@@ -1254,6 +1253,7 @@ let currentRiderFilter = {
     stageContext: null
 };
 
+// Preset configs: which stat to sort by, and which columns to highlight
 const RIDER_PRESETS = {
     all:        { sortBy: 'avg', highlight: [] },
     gc:         { sortBy: 'gc',  highlight: ['gc', 'mtn', 'itt'] },
@@ -1264,6 +1264,7 @@ const RIDER_PRESETS = {
     puncheurs:  { sortBy: 'hll', highlight: ['hll', 'or'] }
 };
 
+// Map stage types to presets (for "See top riders for this stage" feature)
 const STAGE_TYPE_TO_PRESET = {
     flat:     'sprinters',
     hilly:    'puncheurs',
@@ -1278,21 +1279,25 @@ function setupRiderStatsTab() {
     }
     populateRiderFilters();
     
+    // Search input
     document.getElementById('riderSearch').addEventListener('input', (e) => {
         currentRiderFilter.search = e.target.value.toLowerCase();
         renderRiderStats();
     });
     
+    // Team filter
     document.getElementById('riderTeamFilter').addEventListener('change', (e) => {
         currentRiderFilter.team = e.target.value;
         renderRiderStats();
     });
     
+    // Nationality filter
     document.getElementById('riderNationalityFilter').addEventListener('change', (e) => {
         currentRiderFilter.nationality = e.target.value;
         renderRiderStats();
     });
     
+    // Quick filter buttons
     document.querySelectorAll('.quick-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
@@ -1305,6 +1310,7 @@ function setupRiderStatsTab() {
         });
     });
     
+    // Clear stage context
     document.getElementById('clearStageContext').addEventListener('click', () => {
         currentRiderFilter.stageContext = null;
         document.getElementById('stageContextBanner').classList.add('hidden');
@@ -1317,6 +1323,7 @@ function setupRiderStatsTab() {
 }
 
 function populateRiderFilters() {
+    // Teams
     const teamSelect = document.getElementById('riderTeamFilter');
     const uniqueTeams = [...new Set(ridersStats.map(r => r.team))].sort();
     uniqueTeams.forEach(t => {
@@ -1326,6 +1333,7 @@ function populateRiderFilters() {
         teamSelect.appendChild(opt);
     });
     
+    // Nationalities
     const natSelect = document.getElementById('riderNationalityFilter');
     const uniqueNats = [...new Set(ridersStats.map(r => r.nationality))].sort();
     uniqueNats.forEach(n => {
@@ -1349,6 +1357,7 @@ function filterAndSortRiders() {
     if (typeof ridersStats === 'undefined') return [];
     let list = [...ridersStats];
     
+    // Search filter
     if (currentRiderFilter.search) {
         list = list.filter(r => 
             r.name.toLowerCase().includes(currentRiderFilter.search) ||
@@ -1357,14 +1366,17 @@ function filterAndSortRiders() {
         );
     }
     
+    // Team filter
     if (currentRiderFilter.team) {
         list = list.filter(r => r.team === currentRiderFilter.team);
     }
     
+    // Nationality filter
     if (currentRiderFilter.nationality) {
         list = list.filter(r => r.nationality === currentRiderFilter.nationality);
     }
     
+    // Sort
     const col = currentRiderFilter.sortColumn;
     const dir = currentRiderFilter.sortDirection === 'asc' ? 1 : -1;
     
@@ -1492,6 +1504,7 @@ function renderRiderStats() {
     
     container.innerHTML = tableHtml;
     
+    // Wire up sortable column headers
     container.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => {
             const col = th.dataset.sort;
@@ -1506,6 +1519,7 @@ function renderRiderStats() {
     });
 }
 
+// Called from Stages tab — switches to Riders tab and applies stage-type preset
 function showRidersForStage(stageNum, stageType) {
     const preset = STAGE_TYPE_TO_PRESET[stageType];
     if (!preset) return;
@@ -1513,11 +1527,13 @@ function showRidersForStage(stageNum, stageType) {
     const stage = stages.find(s => s.num === stageNum);
     if (!stage) return;
     
+    // Switch tab
     document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.querySelector('[data-tab="riders"]').classList.add('active');
     document.getElementById('riders').classList.add('active');
     
+    // Apply preset
     document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`.quick-filter-btn[data-preset="${preset}"]`).classList.add('active');
     currentRiderFilter.preset = preset;
@@ -1525,6 +1541,7 @@ function showRidersForStage(stageNum, stageType) {
     currentRiderFilter.sortDirection = 'desc';
     currentRiderFilter.stageContext = { stageNum, stageType };
     
+    // Show context banner
     const banner = document.getElementById('stageContextBanner');
     const label = document.getElementById('stageContextLabel');
     label.innerHTML = `Stage ${stageNum} (${stage.from} → ${stage.to}) — <em>${stageType}</em>`;
